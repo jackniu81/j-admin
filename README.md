@@ -134,6 +134,8 @@ npm run seed -w server
 
 侧边栏 9 个菜单，M1 P0（登录 + 布局 + 数据表格）、M2 P1（Dashboard + 表单）、M3 P2（通用能力）已全部落地。
 
+![Dashboard 看板](./docs/images/Dashboard-2.png)
+
 | 模块 | 状态 | 说明 |
 | --- | --- | --- |
 | 登录 / 路由守卫 | ✅ 已实现 | JWT、token 过期跳登录、角色过滤 |
