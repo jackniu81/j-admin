@@ -1,4 +1,5 @@
 import { randomUUID } from 'crypto';
+import { Logger } from '@nestjs/common';
 import { Pool } from 'pg';
 import {
   Collection,
@@ -8,7 +9,11 @@ import {
   Query,
   SORTABLE_COLUMNS,
 } from './data-store.interface';
+import { SqlExecutor, TransactionRunner, runMigrations } from './migration';
+import { MIGRATIONS } from './migrations';
 import { buildSeed } from './seed';
+import { BizException } from '../common/biz.exception';
+import { PG_UNIQUE_VIOLATION, UNIQUE_CONFLICT } from './unique-rule';
 
 export interface PostgresStoreOptions {
   host: string;
@@ -39,10 +44,13 @@ function dbToEntity(row: Record<string, any>): any {
 
 /**
  * PostgreSQL 实现：pg 连接池，两张表 users / customers。
+ * 表结构由 migrations/ 下的版本化 SQL 建立（不再靠 CREATE TABLE IF NOT EXISTS 硬编码）。
  * 分页排序走 SQL LIMIT/OFFSET + 参数化 ORDER BY（列名经白名单映射，防注入）。
- * 与 FileStore 表现完全一致（spec §8 P0 验收）。
+ * 与 FileStore 的读写表现一致（spec §8 P0 验收）；唯一约束目前仅本实现下推到库级，
+ * file 模式的服务层校验随 #3 一并落地。
  */
-export class PostgresStore implements DataStore {
+export class PostgresStore implements DataStore, TransactionRunner {
+  private readonly logger = new Logger(PostgresStore.name);
   private pool: Pool;
 
   constructor(private readonly opts: PostgresStoreOptions) {
@@ -56,35 +64,34 @@ export class PostgresStore implements DataStore {
   }
 
   async init(): Promise<void> {
-    await this.pool.query(`
-      CREATE TABLE IF NOT EXISTS users (
-        id            text PRIMARY KEY,
-        created_at    text NOT NULL,
-        updated_at    text NOT NULL,
-        deleted       boolean NOT NULL DEFAULT false,
-        username      text NOT NULL UNIQUE,
-        password_hash text NOT NULL,
-        display_name  text NOT NULL,
-        role          text NOT NULL,
-        status        text NOT NULL
-      );
-      CREATE TABLE IF NOT EXISTS customers (
-        id         text PRIMARY KEY,
-        created_at text NOT NULL,
-        updated_at text NOT NULL,
-        deleted    boolean NOT NULL DEFAULT false,
-        name       text NOT NULL,
-        email      text NOT NULL UNIQUE,
-        phone      text,
-        status     text NOT NULL,
-        remark     text
-      );
-    `);
+    const applied = await runMigrations(this, MIGRATIONS);
+    this.logger.log(
+      applied.length ? `已应用迁移: ${applied.join(' -> ')}` : '迁移已是最新，本次无变更',
+    );
 
     // 表为空则首次 seed
     const { rows } = await this.pool.query('SELECT count(*)::int AS n FROM customers');
     if (rows[0].n === 0) {
       await this.seedRows();
+    }
+  }
+
+  /**
+   * 取一条独占连接跑单个事务（迁移用）：
+   * BEGIN/COMMIT 必须落在同一连接上，不能用 pool.query。
+   */
+  async withTransaction<T>(fn: (ex: SqlExecutor) => Promise<T>): Promise<T> {
+    const client = await this.pool.connect();
+    try {
+      await client.query('BEGIN');
+      const out = await fn(client);
+      await client.query('COMMIT');
+      return out;
+    } catch (err) {
+      await client.query('ROLLBACK');
+      throw err;
+    } finally {
+      client.release();
     }
   }
 
@@ -171,6 +178,14 @@ export class PostgresStore implements DataStore {
     return res.rows[0] ? dbToEntity(res.rows[0]) : null;
   }
 
+  /** 部分唯一索引冲突（23505）转成业务码 40900，其余异常原样向上抛 */
+  private mapError(c: Collection, err: unknown): unknown {
+    if ((err as { code?: string })?.code === PG_UNIQUE_VIOLATION) {
+      return new BizException(40900, UNIQUE_CONFLICT[c].message);
+    }
+    return err;
+  }
+
   async insert<T extends Collection>(c: T, data: NewEntity<T>): Promise<any> {
     const ts = new Date().toISOString();
     const full: Record<string, any> = {
@@ -185,11 +200,15 @@ export class PostgresStore implements DataStore {
     const placeholders = cols.map((_, i) => `$${i + 1}`).join(', ');
     const params = keys.map((k) => (full[k] === undefined ? null : full[k]));
 
-    const res = await this.pool.query(
-      `INSERT INTO ${c} (${cols.join(', ')}) VALUES (${placeholders}) RETURNING *`,
-      params,
-    );
-    return dbToEntity(res.rows[0]);
+    try {
+      const res = await this.pool.query(
+        `INSERT INTO ${c} (${cols.join(', ')}) VALUES (${placeholders}) RETURNING *`,
+        params,
+      );
+      return dbToEntity(res.rows[0]);
+    } catch (err) {
+      throw this.mapError(c, err);
+    }
   }
 
   async update<T extends Collection>(c: T, id: string, patch: Partial<any>): Promise<any> {
@@ -198,14 +217,18 @@ export class PostgresStore implements DataStore {
     const setSql = keys.map((k, i) => `${snake(k)} = $${i + 1}`).join(', ');
     const params = keys.map((k) => ((data as any)[k] === undefined ? null : (data as any)[k]));
 
-    const res = await this.pool.query(
-      `UPDATE ${c} SET ${setSql} WHERE id = $${keys.length + 1} RETURNING *`,
-      [...params, id],
-    );
-    if (!res.rows[0]) {
-      throw new Error(`${c} 中不存在 id=${id} 的记录`);
+    try {
+      const res = await this.pool.query(
+        `UPDATE ${c} SET ${setSql} WHERE id = $${keys.length + 1} RETURNING *`,
+        [...params, id],
+      );
+      if (!res.rows[0]) {
+        throw new Error(`${c} 中不存在 id=${id} 的记录`);
+      }
+      return dbToEntity(res.rows[0]);
+    } catch (err) {
+      throw this.mapError(c, err);
     }
-    return dbToEntity(res.rows[0]);
   }
 
   async softDelete<T extends Collection>(c: T, id: string): Promise<any> {
