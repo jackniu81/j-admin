@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Alert,
   Button,
@@ -15,11 +15,10 @@ import {
   CheckCircleOutlined,
   TeamOutlined,
 } from '@ant-design/icons';
-import { Column, Line } from '@ant-design/plots';
+import { Column, Line, Pie } from '@ant-design/plots';
 import {
   apiDashboardStats,
   apiDashboardStatusDistribution,
-  apiDashboardTrend,
   type DashboardStats,
   type StatusBucket,
   type TrendPoint,
@@ -32,25 +31,64 @@ const STATUS_LABEL: Record<'enabled' | 'disabled', string> = {
   disabled: '禁用',
 };
 
+/** 本地生成近 N 天的随机趋势数据（Issue #25：折线图不再依赖后端，视觉更活泼） */
+function randomTrend(days: Days): TrendPoint[] {
+  const out: TrendPoint[] = [];
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  for (let i = days - 1; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(today.getDate() - i);
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    out.push({ date: `${y}-${m}-${day}`, count: Math.floor(Math.random() * 21) });
+  }
+  return out;
+}
+
+/** 未实现模块 demo 图数据（一次性随机，避免 render 抖动） */
+interface Named { name: string; value: number }
+function randomOrderStatus(): Named[] {
+  return [
+    { name: '待付款', value: 20 + Math.floor(Math.random() * 60) },
+    { name: '待发货', value: 20 + Math.floor(Math.random() * 60) },
+    { name: '已完成', value: 60 + Math.floor(Math.random() * 120) },
+    { name: '已取消', value: 5 + Math.floor(Math.random() * 30) },
+  ];
+}
+function randomProductSales(): Named[] {
+  return [
+    { name: '数码配件', value: 200 + Math.floor(Math.random() * 400) },
+    { name: '家居用品', value: 150 + Math.floor(Math.random() * 400) },
+    { name: '服装鞋帽', value: 250 + Math.floor(Math.random() * 500) },
+    { name: '美妆个护', value: 180 + Math.floor(Math.random() * 400) },
+    { name: '食品生鲜', value: 220 + Math.floor(Math.random() * 400) },
+  ].sort((a, b) => b.value - a.value);
+}
+
 export default function Dashboard() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
-  const [trend, setTrend] = useState<TrendPoint[] | null>(null);
   const [dist, setDist] = useState<StatusBucket[] | null>(null);
   const [days, setDays] = useState<Days>(7);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchData = useCallback(async (d: Days) => {
+  // 每次 days 变化重新随机一组趋势；页面挂载即有数据
+  const trend = useMemo<TrendPoint[]>(() => randomTrend(days), [days]);
+  // demo 图数据只在挂载时随机一次
+  const orderStatus = useMemo<Named[]>(() => randomOrderStatus(), []);
+  const productSales = useMemo<Named[]>(() => randomProductSales(), []);
+
+  const fetchData = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const [s, t, sd] = await Promise.all([
+      const [s, sd] = await Promise.all([
         apiDashboardStats(),
-        apiDashboardTrend(d),
         apiDashboardStatusDistribution(),
       ]);
       setStats(s);
-      setTrend(t);
       setDist(sd);
     } catch (e: unknown) {
       const msg =
@@ -63,10 +101,10 @@ export default function Dashboard() {
   }, []);
 
   useEffect(() => {
-    fetchData(days);
-  }, [days, fetchData]);
+    fetchData();
+  }, [fetchData]);
 
-  // 首次加载中：三卡片骨架，避免闪烁 0
+  // 首次加载：骨架
   if (loading && !stats && !error) {
     return (
       <Row gutter={[16, 16]}>
@@ -81,7 +119,7 @@ export default function Dashboard() {
     );
   }
 
-  // 接口挂掉：整页错误提示 + 重试按钮
+  // 接口挂掉：Alert + 重试
   if (error) {
     return (
       <Alert
@@ -90,7 +128,7 @@ export default function Dashboard() {
         message="数据加载失败"
         description={error}
         action={
-          <Button size="small" onClick={() => fetchData(days)}>
+          <Button size="small" onClick={fetchData}>
             重试
           </Button>
         }
@@ -138,7 +176,7 @@ export default function Dashboard() {
         </Col>
       </Row>
 
-      {/* 折线图：近 N 天新增趋势 */}
+      {/* 折线图：近 N 天新增趋势（随机数据） */}
       <Card
         style={{ marginTop: 16 }}
         title="客户新增趋势"
@@ -156,22 +194,52 @@ export default function Dashboard() {
           </Radio.Group>
         }
       >
-        {isEmptyData ? (
-          <Empty description="暂无客户数据" />
-        ) : (
-          <Line
-            data={trend ?? []}
-            xField="date"
-            yField="count"
-            height={280}
-            point={{ sizeField: 3 }}
-            axis={{ y: { title: '新增数' } }}
-            interaction={{ tooltip: { showCrosshairs: true } }}
-          />
-        )}
+        <Line
+          data={trend}
+          xField="date"
+          yField="count"
+          height={280}
+          point={{ sizeField: 3 }}
+          axis={{ y: { title: '新增数' } }}
+          interaction={{ tooltip: { showCrosshairs: true } }}
+        />
       </Card>
 
-      {/* 柱状图：状态分布 */}
+      {/* 状态分布 + 未实现模块 demo 图 */}
+      <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
+        <Col xs={24} md={12}>
+          <Card title="订单状态分布">
+            <Pie
+              data={orderStatus}
+              angleField="value"
+              colorField="name"
+              height={280}
+              radius={0.85}
+              innerRadius={0.55}
+              label={{ text: 'value', style: { fontWeight: 'bold' } }}
+              legend={{ position: 'right' }}
+              statistic={{
+                title: { content: '订单' },
+              }}
+            />
+          </Card>
+        </Col>
+        <Col xs={24} md={12}>
+          <Card title="商品分类销量 TOP 5">
+            <Column
+              data={productSales}
+              xField="name"
+              yField="value"
+              colorField="name"
+              height={280}
+              legend={false}
+              label={{ position: 'top' }}
+            />
+          </Card>
+        </Col>
+      </Row>
+
+      {/* 客户状态分布（真实数据，仍展示） */}
       <Card style={{ marginTop: 16 }} title="客户状态分布">
         {isEmptyData ? (
           <Empty description="暂无客户数据" />
