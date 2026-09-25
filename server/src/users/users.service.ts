@@ -1,8 +1,10 @@
 import { Inject, Injectable } from '@nestjs/common';
+import { hashSync } from 'bcryptjs';
 import { BizException } from '../common/biz.exception';
 import { SafeUser } from '../common/auth.types';
 import { AuthUser } from '../common/auth.types';
 import { DATA_STORE, DataStore, UserRow } from '../data/data-store.interface';
+import { CreateUserDto } from './dto/create-user.dto';
 import { QueryUserDto } from './dto/query-user.dto';
 import { UpdateUserStatusDto } from './dto/update-status.dto';
 
@@ -25,6 +27,47 @@ export class UsersService {
       pageSize: q.pageSize,
     });
     return { list: (list as UserRow[]).map(sanitize), total, page: q.page, pageSize: q.pageSize };
+  }
+
+  /**
+   * 新建用户（仅 admin）：
+   * - 用户名应用级查重 → 40900（文案与 UNIQUE_CONFLICT 一致，双数据源统一）
+   * - 密码 bcrypt cost 10 哈希存储
+   */
+  async create(dto: CreateUserDto) {
+    const existing = await this.store.findBy('users', { username: dto.username } as Partial<UserRow>);
+    if (existing) throw new BizException(40900, '用户名已存在');
+
+    const created = await this.store.insert('users', {
+      username: dto.username,
+      passwordHash: hashSync(dto.password, 10),
+      displayName: dto.displayName,
+      role: dto.role,
+      status: 'active',
+    });
+    return sanitize(created);
+  }
+
+  /**
+   * 软删除用户（spec 保护规则）：
+   * - 不允许删除自己
+   * - 不允许删除最后一个活跃 admin
+   */
+  async softDelete(id: string, currentUser: AuthUser) {
+    const target = await this.store.findOne('users', id);
+    if (!target || target.deleted) throw new BizException(40400, '用户不存在');
+
+    if (id === currentUser.sub) {
+      throw new BizException(40900, '不能删除自己的账号');
+    }
+    if (target.role === 'admin' && target.status === 'active') {
+      const activeAdmins = await this.store.count('users', { role: 'admin', status: 'active' } as Partial<UserRow>);
+      if (activeAdmins <= 1) {
+        throw new BizException(40900, '不能删除最后一个管理员');
+      }
+    }
+    await this.store.softDelete('users', id);
+    return { id };
   }
 
   /**

@@ -4,7 +4,7 @@ import { CustomerRow, UserRow } from './data-store.interface';
 
 /**
  * 种子数据（spec §3.4）。
- * - 账号：admin/admin（role=admin）、user1/user1（role=user）
+ * - 账号：admin/admin（role=admin）、user2/user2、user3/user3（role=user）
  * - 客户：50 条，createdAt 分散最近 30 天，status 混合，保证分页/搜索/筛选/排序/趋势图都有真实观感
  * passwordHash 用 bcryptjs，cost 10。
  */
@@ -70,9 +70,20 @@ function users(): SeedData['users'] {
       createdAt: now,
       updatedAt: now,
       deleted: false,
-      username: 'user1',
-      passwordHash: hashSync('user1', 10),
-      displayName: '普通用户',
+      username: 'user2',
+      passwordHash: hashSync('user2', 10),
+      displayName: '普通用户2',
+      role: 'user',
+      status: 'active',
+    },
+    {
+      id: uuidv4(),
+      createdAt: now,
+      updatedAt: now,
+      deleted: false,
+      username: 'user3',
+      passwordHash: hashSync('user3', 10),
+      displayName: '普通用户3',
       role: 'user',
       status: 'active',
     },
