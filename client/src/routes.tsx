@@ -1,13 +1,18 @@
 import type { ComponentType } from 'react';
+import { TeamOutlined, UserOutlined } from '@ant-design/icons';
+import Welcome from './pages/Welcome';
+import Customers from './pages/Customers';
+import Users from './pages/Users';
 
 /**
- * 路由与菜单元数据（唯一数据源，#5 侧边栏/面包屑由它派生）。
- * Issue #4 只用到 element + roles，meta 预留字段。
+ * 路由与菜单元数据（唯一数据源）。
+ * 侧边栏 Menu / 面包屑 / 路由注册 均由此派生，不要手写第二份菜单。
  */
 export interface RouteMeta {
   title?: string;
   breadcrumb?: string[];
-  /** 可见角色，空/undefined 表示全部登录用户可见 */
+  icon?: ComponentType;
+  /** 可见/可访问角色，空/undefined 表示全部登录用户 */
   roles?: string[];
 }
 
@@ -18,14 +23,23 @@ export interface AppRoute {
   meta?: RouteMeta;
 }
 
-// 占位（Issue #5/#6 会补 Dashboard/Customers/Users 页面组件）
-import Welcome from './pages/Welcome';
-
 export const ROUTES: AppRoute[] = [
   {
     path: '/',
     label: '首页',
     component: Welcome,
-    meta: { title: '首页', breadcrumb: ['首页'] },
+    meta: { title: '首页', breadcrumb: ['首页'], icon: UserOutlined },
+  },
+  {
+    path: '/customers',
+    label: '客户管理',
+    component: Customers,
+    meta: { title: '客户管理', breadcrumb: ['首页', '客户管理'] },
+  },
+  {
+    path: '/users',
+    label: '用户管理',
+    component: Users,
+    meta: { title: '用户管理', breadcrumb: ['首页', '用户管理'], icon: TeamOutlined, roles: ['admin'] },
   },
 ];

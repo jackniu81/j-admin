@@ -1,77 +1,155 @@
-import type { CSSProperties, ReactNode } from 'react';
-import { NavLink } from 'react-router';
-import { Button, Flex, Layout as AntdLayout, Typography } from 'antd';
+import { useMemo, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router';
+import {
+  Breadcrumb,
+  Button,
+  Dropdown,
+  Flex,
+  Layout as AntdLayout,
+  Menu,
+  Modal,
+  Tag,
+  Typography,
+} from 'antd';
+import type { MenuProps } from 'antd';
+import { MenuFoldOutlined, MenuUnfoldOutlined, LogoutOutlined } from '@ant-design/icons';
+import { useAuth } from '../auth/AuthContext';
+import { ROUTES } from '../routes';
 
-const { Header, Content, Footer } = AntdLayout;
+const { Header, Sider, Content } = AntdLayout;
 
-// Shared content width so header / main / footer stay aligned
-const SHELL: CSSProperties = {
-  maxWidth: 768,
-  margin: '0 auto',
-  width: '100%',
-};
+const SIDER_KEY = 'j-admin.sider.collapsed';
 
-const NAV_ITEMS = [
-  { to: '/', label: 'Welcome', end: true },
-  { to: '/about', label: 'About', end: false },
-];
+export default function Layout({ children }: { children: React.ReactNode }) {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
 
-function NavBar() {
-  return (
-    <Flex gap={4}>
-      {NAV_ITEMS.map((item) => (
-        <NavLink key={item.to} to={item.to} end={item.end}>
-          {({ isActive }) => (
-            <Button type={isActive ? 'primary' : 'text'}>
-              {item.label}
-            </Button>
-          )}
-        </NavLink>
-      ))}
-    </Flex>
-  );
-}
+  // 折叠态持久化
+  const [collapsed, setCollapsed] = useState(() => localStorage.getItem(SIDER_KEY) === '1');
 
-export default function Layout({ children }: { children: ReactNode }) {
+  const toggleCollapsed = () => {
+    const next = !collapsed;
+    setCollapsed(next);
+    localStorage.setItem(SIDER_KEY, next ? '1' : '0');
+  };
+
+  // 按角色过滤菜单（单一数据源：routes.tsx）
+  const menuItems: MenuProps['items'] = useMemo(() => {
+    return ROUTES
+      .filter((r) => {
+        if (!r.meta?.roles?.length) return true;
+        return user && r.meta.roles.includes(user.role);
+      })
+      .map((r) => {
+        const IconComp = r.meta?.icon;
+        return {
+          key: r.path,
+          icon: IconComp ? <IconComp /> : undefined,
+          label: r.label,
+        };
+      });
+  }, [user]);
+
+  // 当前高亮菜单项 = pathname 最长匹配
+  const selectedKey = useMemo(() => {
+    const sorted = [...ROUTES].sort((a, b) => b.path.length - a.path.length);
+    const match = sorted.find((r) => location.pathname.startsWith(r.path));
+    return match?.path ?? '/';
+  }, [location.pathname]);
+
+  // 面包屑由当前路由 meta.breadcrumb 派生
+  const breadcrumbItems = useMemo(() => {
+    const route = ROUTES.find((r) => r.path === selectedKey);
+    const crumbs = route?.meta?.breadcrumb ?? ['首页'];
+    return crumbs.map((c) => ({ title: c }));
+  }, [selectedKey]);
+
+  // 用户下拉
+  const userMenuItems: MenuProps['items'] = [
+    {
+      key: 'logout',
+      icon: <LogoutOutlined />,
+      label: '退出登录',
+      onClick: () => {
+        Modal.confirm({
+          title: '确认退出',
+          content: '确定要退出登录吗？',
+          okText: '退出',
+          cancelText: '取消',
+          onOk: async () => {
+            await logout();
+            navigate('/login', { replace: true });
+          },
+        });
+      },
+    },
+  ];
+
   return (
     <AntdLayout style={{ minHeight: '100vh' }}>
-      <Header
-        style={{
-          background: '#fff',
-          borderBottom: '1px solid #f0f0f0',
-          padding: '0 24px',
-        }}
+      <Sider
+        collapsible
+        collapsed={collapsed}
+        onCollapse={setCollapsed}
+        trigger={null}
+        width={208}
+        collapsedWidth={64}
+        style={{ overflow: 'auto', height: '100vh', position: 'fixed', left: 0, top: 0, bottom: 0 }}
       >
-        <Flex
-          align="center"
-          justify="space-between"
-          style={{ ...SHELL, height: '100%' }}
+        <div style={{ height: 56, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 700, fontSize: collapsed ? 14 : 18 }}>
+          {collapsed ? 'JA' : 'J-Admin'}
+        </div>
+        <Menu
+          theme="dark"
+          mode="inline"
+          selectedKeys={[selectedKey]}
+          items={menuItems}
+          onClick={({ key }) => navigate(key)}
+        />
+      </Sider>
+
+      <AntdLayout style={{ marginLeft: collapsed ? 64 : 208, transition: 'margin-left .2s' }}>
+        <Header
+          style={{
+            background: '#fff',
+            padding: '0 24px',
+            borderBottom: '1px solid #f0f0f0',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            position: 'sticky',
+            top: 0,
+            zIndex: 10,
+          }}
         >
-          <Typography.Text strong style={{ fontSize: 18 }}>
-            NestJS + React
-          </Typography.Text>
-          <NavBar />
-        </Flex>
-      </Header>
+          <Flex align="center" gap={16}>
+            <Button
+              type="text"
+              icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+              onClick={toggleCollapsed}
+            />
+            <Breadcrumb items={breadcrumbItems} />
+          </Flex>
 
-      <Content style={{ padding: '40px 24px' }}>
-        <div style={SHELL}>{children}</div>
-      </Content>
+          <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
+            <Flex align="center" gap={8} style={{ cursor: 'pointer' }}>
+              <Typography.Text ellipsis style={{ maxWidth: 120 }}>
+                {user?.displayName ?? user?.username ?? '未知'}
+              </Typography.Text>
+              {user && (
+                <Tag color={user.role === 'admin' ? 'blue' : 'default'}>
+                  {user.role}
+                </Tag>
+              )}
+            </Flex>
+          </Dropdown>
+        </Header>
 
-      <Footer style={{ padding: '16px 24px', background: '#fff' }}>
-        <Flex align="center" justify="space-between" style={SHELL}>
-          <Typography.Text type="secondary" style={{ fontSize: 12 }}>
-            NestJS + React Full Stack Starter · v{__APP_VERSION__}
-          </Typography.Text>
-          <Typography.Text
-            type="secondary"
-            style={{ fontSize: 12 }}
-            title="Build timestamp"
-          >
-            2026.09 · built {__BUILD_TIME__}
-          </Typography.Text>
-        </Flex>
-      </Footer>
+        <Content style={{ padding: 24, minHeight: 'calc(100vh - 56px)' }}>
+          {children}
+        </Content>
+      </AntdLayout>
     </AntdLayout>
   );
 }
