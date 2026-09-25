@@ -1,5 +1,15 @@
 import { lazy, type ComponentType, type LazyExoticComponent } from 'react';
-import { DashboardOutlined, TeamOutlined, UserOutlined } from '@ant-design/icons';
+import {
+  BarChartOutlined,
+  BellOutlined,
+  DashboardOutlined,
+  FileSearchOutlined,
+  GoldOutlined,
+  SettingOutlined,
+  ShoppingCartOutlined,
+  TeamOutlined,
+  UserOutlined,
+} from '@ant-design/icons';
 
 /**
  * 路由与菜单元数据（唯一数据源）。
@@ -24,6 +34,8 @@ export interface AppRoute {
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 const Customers = lazy(() => import('./pages/Customers'));
 const Users = lazy(() => import('./pages/Users'));
+// 未实现模块共用的占位页（#23）
+const ComingSoon = lazy(() => import('./pages/ComingSoon'));
 
 export const ROUTES: AppRoute[] = [
   {
@@ -39,9 +51,60 @@ export const ROUTES: AppRoute[] = [
     meta: { title: '客户管理', breadcrumb: ['首页', '客户管理'], icon: UserOutlined },
   },
   {
+    path: '/orders',
+    label: '订单管理',
+    component: ComingSoon,
+    meta: { title: '订单管理', breadcrumb: ['首页', '订单管理'], icon: ShoppingCartOutlined },
+  },
+  {
+    path: '/products',
+    label: '商品管理',
+    component: ComingSoon,
+    meta: { title: '商品管理', breadcrumb: ['首页', '商品管理'], icon: GoldOutlined },
+  },
+  {
+    path: '/reports',
+    label: '报表中心',
+    component: ComingSoon,
+    meta: { title: '报表中心', breadcrumb: ['首页', '报表中心'], icon: BarChartOutlined },
+  },
+  {
+    path: '/messages',
+    label: '消息通知',
+    component: ComingSoon,
+    meta: { title: '消息通知', breadcrumb: ['首页', '消息通知'], icon: BellOutlined },
+  },
+  {
     path: '/users',
     label: '用户管理',
     component: Users,
-    meta: { title: '用户管理', breadcrumb: ['首页', '用户管理'], icon: TeamOutlined, roles: ['admin'] },
+    meta: {
+      title: '用户管理',
+      breadcrumb: ['首页', '用户管理'],
+      icon: TeamOutlined,
+      roles: ['admin'],
+    },
+  },
+  {
+    path: '/logs',
+    label: '操作日志',
+    component: ComingSoon,
+    meta: {
+      title: '操作日志',
+      breadcrumb: ['首页', '操作日志'],
+      icon: FileSearchOutlined,
+      roles: ['admin'],
+    },
+  },
+  {
+    path: '/settings',
+    label: '系统设置',
+    component: ComingSoon,
+    meta: {
+      title: '系统设置',
+      breadcrumb: ['首页', '系统设置'],
+      icon: SettingOutlined,
+      roles: ['admin'],
+    },
   },
 ];
