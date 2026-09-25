@@ -22,6 +22,7 @@
 | 6 | [前端] 客户管理页 + 用户管理页（ProTable / ProForm） | M1 | frontend, P0 | §7.3 §7.4 §5 |
 | 7 | Dashboard 看板：统计接口 + 卡片 + 图表 | M2 | backend, frontend, P1 | §6 §7.5 |
 | 8 | 通用能力收口：全局提示、Loading、404、错误文案 | M3 | backend, frontend, P2 | §4 §7.6 |
+| 12 | [后端] PostgresStore 建表 DDL 与迁移策略（#1 收口项） | M1 | backend, P0 | §3.2 §3.5 |
 
 ## 依赖关系
 
@@ -34,6 +35,7 @@
 ```
 
 - `#1` 是一切前提：先有双数据源和统一响应，后面所有接口才有一致的形态
+- `#12` 是 `#1` 的遗留项：表结构与索引从硬编码 `CREATE TABLE IF NOT EXISTS` 改为版本化迁移
 - `#4 #5` 可与 `#3` 并行（前端先用 mock 数据）
 - `#7 #8` 不阻塞 P0 验收
 

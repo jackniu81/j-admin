@@ -97,7 +97,7 @@ type Collection = 'users' | 'customers';
 | | `FileStore` | `PostgresStore` |
 | --- | --- | --- |
 | 存储 | 读入 `db.json` 到内存，写操作**同步落盘**（先写 `.tmp` 再 rename，避免半写损坏） | `pg` 连接池，两张表 `users` / `customers` |
-| 建表 | 文件不存在则写入 seed | `init()` 执行 `CREATE TABLE IF NOT EXISTS` |
+| 建表 | 文件不存在则写入 seed | `init()` 按 `schema_migrations` 应用版本化迁移（见 §3.5） |
 | 分页排序 | 内存 `filter/sort/slice` | SQL `LIMIT/OFFSET` + 参数化 `ORDER BY`（排序列走白名单映射） |
 | 适用 | 演示、测试、无 PG 环境 | 接近真实交付 |
 
@@ -111,7 +111,7 @@ updatedAt: string;
 deleted: boolean;      // 软删除标记，默认 false
 
 // users
-username: string;      // 唯一，登录名
+username: string;      // 唯一，登录名（唯一性只对 deleted=false 的行生效）
 passwordHash: string;  // bcrypt，cost 10
 displayName: string;
 role: 'admin' | 'user';
@@ -119,7 +119,7 @@ status: 'active' | 'disabled';
 
 // customers（P0 业务主表）
 name: string;          // 必填，2-30 字
-email: string;         // 必填，邮箱格式，唯一
+email: string;         // 必填，邮箱格式，唯一（同上，软删除后可复用）
 phone?: string;        // 选填，11 位手机号
 status: 'enabled' | 'disabled';
 remark?: string;       // 选填，≤200 字
@@ -132,6 +132,82 @@ remark?: string;       // 选填，≤200 字
 - 账号：`admin / admin123`（role=admin）、`user1 / user123`（role=user）
 - 客户：**50 条**，`createdAt` 分散在最近 30 天，`status` 混合 enabled/disabled —— 保证分页、搜索、筛选、排序、趋势图都有真实观感
 - 首次启动（文件不存在 / 表为空）自动写入；提供 `npm run seed -w server` 可强制重置
+
+### 3.5 postgres 建表 DDL 与迁移策略
+
+不靠 `CREATE TABLE IF NOT EXISTS` 硬编码在建库时一次性执行（表已存在时改动会被静默跳过），而是版本化 forward-only 迁移，定义在 `server/src/data/migrations/`。
+
+**迁移机制**
+
+| 项 | 约定 |
+| --- | --- |
+| 版本表 | `schema_migrations(version text PK, name text, applied_at text)` |
+| 应用时机 | `PostgresStore.init()`（DI 工厂内，先于任何请求） |
+| 顺序 | `version` 零填充递增，字典序即时间序；版本号重复直接启动失败 |
+| 事务 | 每个迁移取一条独占连接包在单个事务内，DDL 与版本记录同事务提交，失败整体回滚 |
+| 幂等 | 已应用的版本跳过；所有 DDL 再带 `IF NOT EXISTS` / `IF EXISTS` 双保险 |
+| 回滚 | 不提供 down migration，回滚靠备份恢复 |
+| 依赖 | 不引入 ORM / 迁移 CLI，与 `FileStore` 对等的零依赖心智 |
+
+**0001 建表**（列名 = 实体字段 snake_case，时间列 `text` 存 ISO 8601，与 file 模式表示一致）
+
+```sql
+CREATE TABLE IF NOT EXISTS users (
+  id            text PRIMARY KEY,
+  created_at    text NOT NULL,
+  updated_at    text NOT NULL,
+  deleted       boolean NOT NULL DEFAULT false,
+  username      text NOT NULL,
+  password_hash text NOT NULL,
+  display_name  text NOT NULL,
+  role          text NOT NULL,
+  status        text NOT NULL
+);
+CREATE TABLE IF NOT EXISTS customers (
+  id         text PRIMARY KEY,
+  created_at text NOT NULL,
+  updated_at text NOT NULL,
+  deleted    boolean NOT NULL DEFAULT false,
+  name       text NOT NULL,
+  email      text NOT NULL,
+  phone      text,
+  status     text NOT NULL,
+  remark     text
+);
+```
+
+列上**不写 `UNIQUE`**：本项目是软删除，`deleted = true` 的行仍留在表里，列级 `UNIQUE` 会导致「删掉的账号名永远无法重建」。唯一性下沉为部分唯一索引。
+
+**0002 索引与唯一约束**
+
+```sql
+-- 旧库兼容：先移除早期实现留下的列级 UNIQUE 自动约束
+ALTER TABLE users     DROP CONSTRAINT IF EXISTS users_username_key;
+ALTER TABLE customers DROP CONSTRAINT IF EXISTS customers_email_key;
+
+-- 唯一约束：只对未软删的行生效
+CREATE UNIQUE INDEX IF NOT EXISTS ux_users_username   ON users (username) WHERE deleted = false;
+CREATE UNIQUE INDEX IF NOT EXISTS ux_customers_email  ON customers (email) WHERE deleted = false;
+
+-- 查询索引：列表主路径固定带 deleted = false [+ status] 并按 created_at DESC 排序分页
+CREATE INDEX IF NOT EXISTS ix_users_status_created     ON users (deleted, status, created_at DESC);
+CREATE INDEX IF NOT EXISTS ix_customers_status_created ON customers (deleted, status, created_at DESC);
+CREATE INDEX IF NOT EXISTS ix_users_created            ON users (deleted, created_at DESC);
+CREATE INDEX IF NOT EXISTS ix_customers_created        ON customers (deleted, created_at DESC);
+```
+
+`findOne` / `update` / `softDelete` 走 `id` 主键，无需额外索引。
+
+**冲突处理**：`insert` / `update` 捕获 pg 错误码 `23505` → `BizException(40900, '用户名已存在' | '邮箱已被使用')`，由全局过滤器映射为 HTTP 409（§4.2）。文案常量集中在 `server/src/data/unique-rule.ts`。
+
+**脚本导出**（本地无 PG 时给 DBA 评审 / 手工执行）：
+
+```bash
+npm run db:sql -w server      # 打印与 init() 等价的完整 SQL 到 stdout
+npm run db:migrate -w server  # 读 server/.env 的 PG_* 配置，真正应用迁移
+```
+
+仓库内 `docs/sql/postgres-schema.sql` 是上述 `db:sql` 输出的副本，仅供阅读 / DBA 评审；改动以 `migrations/` 为准，改完重新执行 `npm run db:sql -w server` 覆盖。
 
 ## 4. 统一响应格式与异常处理
 
