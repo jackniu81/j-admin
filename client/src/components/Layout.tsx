@@ -132,7 +132,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             <Breadcrumb items={breadcrumbItems} />
           </Flex>
 
-          <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
+          <Dropdown menu={{ items: userMenuItems }} placement="bottomRight" trigger={['click']}>
             <Flex align="center" gap={8} style={{ cursor: 'pointer' }}>
               <Typography.Text ellipsis style={{ maxWidth: 120 }}>
                 {user?.displayName ?? user?.username ?? '未知'}
