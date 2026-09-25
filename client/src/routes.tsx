@@ -1,6 +1,6 @@
 import type { ComponentType } from 'react';
-import { TeamOutlined, UserOutlined } from '@ant-design/icons';
-import Welcome from './pages/Welcome';
+import { DashboardOutlined, TeamOutlined, UserOutlined } from '@ant-design/icons';
+import Dashboard from './pages/Dashboard';
 import Customers from './pages/Customers';
 import Users from './pages/Users';
 
@@ -27,14 +27,14 @@ export const ROUTES: AppRoute[] = [
   {
     path: '/',
     label: '首页',
-    component: Welcome,
-    meta: { title: '首页', breadcrumb: ['首页'], icon: UserOutlined },
+    component: Dashboard,
+    meta: { title: '首页', breadcrumb: ['首页'], icon: DashboardOutlined },
   },
   {
     path: '/customers',
     label: '客户管理',
     component: Customers,
-    meta: { title: '客户管理', breadcrumb: ['首页', '客户管理'] },
+    meta: { title: '客户管理', breadcrumb: ['首页', '客户管理'], icon: UserOutlined },
   },
   {
     path: '/users',
