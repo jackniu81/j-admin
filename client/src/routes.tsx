@@ -1,12 +1,10 @@
-import type { ComponentType } from 'react';
+import { lazy, type ComponentType, type LazyExoticComponent } from 'react';
 import { DashboardOutlined, TeamOutlined, UserOutlined } from '@ant-design/icons';
-import Dashboard from './pages/Dashboard';
-import Customers from './pages/Customers';
-import Users from './pages/Users';
 
 /**
  * 路由与菜单元数据（唯一数据源）。
  * 侧边栏 Menu / 面包屑 / 路由注册 均由此派生，不要手写第二份菜单。
+ * 页面组件用 React.lazy 做代码分割，Suspense 提供 loading 兜底（#8）。
  */
 export interface RouteMeta {
   title?: string;
@@ -19,9 +17,13 @@ export interface RouteMeta {
 export interface AppRoute {
   path: string;
   label: string;
-  component: ComponentType;
+  component: LazyExoticComponent<ComponentType>;
   meta?: RouteMeta;
 }
+
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+const Customers = lazy(() => import('./pages/Customers'));
+const Users = lazy(() => import('./pages/Users'));
 
 export const ROUTES: AppRoute[] = [
   {

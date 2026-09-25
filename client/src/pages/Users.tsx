@@ -1,9 +1,10 @@
 import { useRef, useState } from 'react';
 import { PageContainer, ProColumns, ProTable } from '@ant-design/pro-components';
 import type { ActionType } from '@ant-design/pro-components';
-import { message, Switch, Tag } from 'antd';
+import { Switch, Tag } from 'antd';
 import { useAuth } from '../auth/AuthContext';
 import { Result } from 'antd';
+import { showError, showSuccess } from '../utils/feedback';
 import { apiListUsers, apiUpdateUserStatus, type AdminUser } from '../api/users';
 
 export default function Users() {
@@ -53,13 +54,13 @@ export default function Users() {
             setPending((p) => ({ ...p, [row.id]: true }));
             try {
               await apiUpdateUserStatus(row.id, next);
-              message.success(checked ? '已启用' : '已禁用');
+              showSuccess(checked ? '已启用' : '已禁用');
               actionRef.current?.reload();
             } catch (e: unknown) {
-              // 拦截器已经 message.error；这里只需回滚开关（reload 即可恢复）
+              // 拦截器已经 showError；这里只需回滚开关（reload 即可恢复）
               const bizMsg =
                 (e as { response?: { data?: { message?: string } } })?.response?.data?.message;
-              if (bizMsg) message.error(bizMsg);
+              if (bizMsg) showError(bizMsg);
             } finally {
               setPending((p) => {
                 const { [row.id]: _drop, ...rest } = p;
