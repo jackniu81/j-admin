@@ -1,33 +1,44 @@
 {
   "users": [
     {
-      "id": "28c3d537-f202-4774-9dcb-ee6edd38934c",
-      "createdAt": "2026-09-25T09:15:15.578Z",
-      "updatedAt": "2026-09-25T09:15:15.578Z",
+      "id": "f0666d44-e7f2-4dc5-b8ae-8723f08386a5",
+      "createdAt": "2026-09-25T13:04:39.555Z",
+      "updatedAt": "2026-09-25T13:04:39.555Z",
       "deleted": false,
       "username": "admin",
-      "passwordHash": "$2b$10$NpQj8AtUIFUAxzv2Lxt7oeY2QoEthCGStYypbPomdlusWUrT1EXo6",
+      "passwordHash": "$2b$10$i1ZuT.AEtpIgOf8MT5mVZOoryHooBPEgVfpm01SB46S47QC6ZY8sy",
       "displayName": "系统管理员",
       "role": "admin",
       "status": "active"
     },
     {
-      "id": "05236f63-8c10-42fd-8987-ec14628562a5",
-      "createdAt": "2026-09-25T09:15:15.578Z",
-      "updatedAt": "2026-09-25T09:15:15.578Z",
+      "id": "bc931ccc-75e6-43c7-809f-5c5e348d953c",
+      "createdAt": "2026-09-25T13:04:39.555Z",
+      "updatedAt": "2026-09-25T13:04:39.555Z",
       "deleted": false,
-      "username": "user1",
-      "passwordHash": "$2b$10$4k8RDa7pU9ykgzbD8zNo9.5E4UhlIieOYYs0wSi580GmTD6gYP4Ve",
-      "displayName": "普通用户",
+      "username": "user2",
+      "passwordHash": "$2b$10$sn/EDLPQDDNvITjIOToRIejAaLgM7Ciih5LewG4VfiDeNoF9fDIcq",
+      "displayName": "普通用户2",
+      "role": "user",
+      "status": "active"
+    },
+    {
+      "id": "9eb97678-4283-4bca-b8a7-0a95f3bedab6",
+      "createdAt": "2026-09-25T13:04:39.555Z",
+      "updatedAt": "2026-09-25T13:04:39.555Z",
+      "deleted": false,
+      "username": "user3",
+      "passwordHash": "$2b$10$EFaAv00m9wwpA47jeAM/gOkJ33ZN5ld/JKilEVxBXdoOj0BhbGuSO",
+      "displayName": "普通用户3",
       "role": "user",
       "status": "active"
     }
   ],
   "customers": [
     {
-      "id": "3bf83e0c-2e08-43b9-9adc-51782f2fdead",
-      "createdAt": "2026-09-25T09:15:15.739Z",
-      "updatedAt": "2026-09-25T09:15:15.739Z",
+      "id": "7d043a7a-ee92-403e-8c6e-d70e61c0230c",
+      "createdAt": "2026-09-25T13:04:39.800Z",
+      "updatedAt": "2026-09-25T13:04:39.800Z",
       "deleted": false,
       "name": "星辰科技1号",
       "email": "customer01@example.com",
@@ -36,9 +47,9 @@
       "remark": "重点客户，备注 1"
     },
     {
-      "id": "ae0925aa-d4cf-46f6-8cd1-581da6099716",
-      "createdAt": "2026-09-24T08:15:15.739Z",
-      "updatedAt": "2026-09-24T08:15:15.739Z",
+      "id": "1032ed91-862c-4267-ae79-33e84d7dee0c",
+      "createdAt": "2026-09-24T12:04:39.800Z",
+      "updatedAt": "2026-09-24T12:04:39.800Z",
       "deleted": false,
       "name": "蓝海网络2号",
       "email": "customer02@demo.cn",
@@ -46,9 +57,9 @@
       "status": "enabled"
     },
     {
-      "id": "571e1bf2-1e8d-4b70-9671-227870855b15",
-      "createdAt": "2026-09-23T07:15:15.739Z",
-      "updatedAt": "2026-09-23T07:15:15.739Z",
+      "id": "8cee09e5-7f46-4d4a-bf6b-ad30810e437c",
+      "createdAt": "2026-09-23T11:04:39.800Z",
+      "updatedAt": "2026-09-23T11:04:39.800Z",
       "deleted": false,
       "name": "朝阳咨询3号",
       "email": "customer03@test.io",
@@ -56,9 +67,9 @@
       "status": "enabled"
     },
     {
-      "id": "4e07cea7-9d58-4615-bce2-15c3ab1fbf09",
-      "createdAt": "2026-09-22T06:15:15.739Z",
-      "updatedAt": "2026-09-22T06:15:15.739Z",
+      "id": "ce17deaf-2dcb-4430-bba4-bff74f4bdfc4",
+      "createdAt": "2026-09-22T10:04:39.800Z",
+      "updatedAt": "2026-09-22T10:04:39.800Z",
       "deleted": false,
       "name": "恒信贸易4号",
       "email": "customer04@mail.com",
@@ -66,9 +77,9 @@
       "status": "enabled"
     },
     {
-      "id": "1d0c3268-e802-4649-9cd0-b1df3fd38946",
-      "createdAt": "2026-09-21T05:15:15.739Z",
-      "updatedAt": "2026-09-21T05:15:15.739Z",
+      "id": "cedf0464-f4c2-4307-b28a-7e7714c002b7",
+      "createdAt": "2026-09-21T09:04:39.800Z",
+      "updatedAt": "2026-09-21T09:04:39.800Z",
       "deleted": false,
       "name": "睿思数据5号",
       "email": "customer05@corp.net",
@@ -76,9 +87,9 @@
       "status": "disabled"
     },
     {
-      "id": "488d5e76-c651-455e-a4cb-afa9da29f4f3",
-      "createdAt": "2026-09-20T04:15:15.739Z",
-      "updatedAt": "2026-09-20T04:15:15.739Z",
+      "id": "3a2d1285-a6fc-4484-9b29-912388f98b0a",
+      "createdAt": "2026-09-20T08:04:39.800Z",
+      "updatedAt": "2026-09-20T08:04:39.800Z",
       "deleted": false,
       "name": "云帆电子6号",
       "email": "customer06@example.com",
@@ -87,9 +98,9 @@
       "remark": "重点客户，备注 6"
     },
     {
-      "id": "267317c4-ec4a-4ba7-9967-6c9592235d57",
-      "createdAt": "2026-09-19T03:15:15.739Z",
-      "updatedAt": "2026-09-19T03:15:15.739Z",
+      "id": "a4204f57-ce64-4383-b35a-1487428905c7",
+      "createdAt": "2026-09-19T07:04:39.800Z",
+      "updatedAt": "2026-09-19T07:04:39.800Z",
       "deleted": false,
       "name": "锦程信息7号",
       "email": "customer07@demo.cn",
@@ -97,9 +108,9 @@
       "status": "enabled"
     },
     {
-      "id": "3d60d196-370a-418e-8fc7-1f730a76fc05",
-      "createdAt": "2026-09-18T02:15:15.739Z",
-      "updatedAt": "2026-09-18T02:15:15.739Z",
+      "id": "70ad5be1-b9c2-429d-a999-6920ffed93ed",
+      "createdAt": "2026-09-18T06:04:39.800Z",
+      "updatedAt": "2026-09-18T06:04:39.800Z",
       "deleted": false,
       "name": "拓维智能8号",
       "email": "customer08@test.io",
@@ -107,9 +118,9 @@
       "status": "enabled"
     },
     {
-      "id": "f94683ff-ed6c-4ec4-85b2-a3f8239fdb59",
-      "createdAt": "2026-09-17T01:15:15.739Z",
-      "updatedAt": "2026-09-17T01:15:15.739Z",
+      "id": "94fb2231-81dc-4fac-829f-fb42051f0795",
+      "createdAt": "2026-09-17T05:04:39.800Z",
+      "updatedAt": "2026-09-17T05:04:39.800Z",
       "deleted": false,
       "name": "汇通科技9号",
       "email": "customer09@mail.com",
@@ -117,9 +128,9 @@
       "status": "disabled"
     },
     {
-      "id": "b38b135b-2aa0-4f49-b3aa-9e915160ddfa",
-      "createdAt": "2026-09-16T00:15:15.739Z",
-      "updatedAt": "2026-09-16T00:15:15.739Z",
+      "id": "12b8db7c-e204-4d83-a98a-d2178de322da",
+      "createdAt": "2026-09-16T04:04:39.800Z",
+      "updatedAt": "2026-09-16T04:04:39.800Z",
       "deleted": false,
       "name": "嘉禾网络10号",
       "email": "customer10@corp.net",
@@ -127,9 +138,9 @@
       "status": "enabled"
     },
     {
-      "id": "dcf6d17e-b08c-4d78-8948-19c189dc3e22",
-      "createdAt": "2026-09-14T23:15:15.739Z",
-      "updatedAt": "2026-09-14T23:15:15.739Z",
+      "id": "d163b45d-b86e-423b-98e6-1a1d57bafa3d",
+      "createdAt": "2026-09-15T03:04:39.800Z",
+      "updatedAt": "2026-09-15T03:04:39.800Z",
       "deleted": false,
       "name": "星辰咨询11号",
       "email": "customer11@example.com",
@@ -138,9 +149,9 @@
       "remark": "重点客户，备注 11"
     },
     {
-      "id": "619b14f0-9b8a-4649-857a-b1ce66cbed9e",
-      "createdAt": "2026-09-13T22:15:15.739Z",
-      "updatedAt": "2026-09-13T22:15:15.739Z",
+      "id": "66d098e0-00d1-44fe-b313-22c60bdd0f5f",
+      "createdAt": "2026-09-14T02:04:39.800Z",
+      "updatedAt": "2026-09-14T02:04:39.800Z",
       "deleted": false,
       "name": "蓝海贸易12号",
       "email": "customer12@demo.cn",
@@ -148,9 +159,9 @@
       "status": "enabled"
     },
     {
-      "id": "28904ddf-c16d-4a62-ab2d-924dedc6dc89",
-      "createdAt": "2026-09-12T21:15:15.739Z",
-      "updatedAt": "2026-09-12T21:15:15.739Z",
+      "id": "9b9f9431-5741-47fa-b0ff-d5cbdb459b35",
+      "createdAt": "2026-09-13T01:04:39.800Z",
+      "updatedAt": "2026-09-13T01:04:39.800Z",
       "deleted": false,
       "name": "朝阳数据13号",
       "email": "customer13@test.io",
@@ -158,9 +169,9 @@
       "status": "disabled"
     },
     {
-      "id": "50344052-278b-4285-b02c-30b6a90f664d",
-      "createdAt": "2026-09-11T20:15:15.739Z",
-      "updatedAt": "2026-09-11T20:15:15.739Z",
+      "id": "5a2e794d-0074-4f5a-97d4-c46b0d1ade08",
+      "createdAt": "2026-09-12T00:04:39.800Z",
+      "updatedAt": "2026-09-12T00:04:39.800Z",
       "deleted": false,
       "name": "恒信电子14号",
       "email": "customer14@mail.com",
@@ -168,9 +179,9 @@
       "status": "enabled"
     },
     {
-      "id": "38aa385f-8874-42a7-b5ae-807b6720d0ac",
-      "createdAt": "2026-09-10T19:15:15.739Z",
-      "updatedAt": "2026-09-10T19:15:15.739Z",
+      "id": "b52abef3-9c22-4cd5-9f40-556de3861614",
+      "createdAt": "2026-09-10T23:04:39.800Z",
+      "updatedAt": "2026-09-10T23:04:39.800Z",
       "deleted": false,
       "name": "睿思信息15号",
       "email": "customer15@corp.net",
@@ -178,9 +189,9 @@
       "status": "enabled"
     },
     {
-      "id": "1e46b542-8fa3-4f1e-8122-b3a6f3d7b966",
-      "createdAt": "2026-09-09T18:15:15.739Z",
-      "updatedAt": "2026-09-09T18:15:15.739Z",
+      "id": "f543bc03-e0c8-4e04-9802-335386770dfb",
+      "createdAt": "2026-09-09T22:04:39.800Z",
+      "updatedAt": "2026-09-09T22:04:39.800Z",
       "deleted": false,
       "name": "云帆智能16号",
       "email": "customer16@example.com",
@@ -189,9 +200,9 @@
       "remark": "重点客户，备注 16"
     },
     {
-      "id": "f43e9eaf-3c86-42f6-bf6f-59f53e642b19",
-      "createdAt": "2026-09-08T17:15:15.739Z",
-      "updatedAt": "2026-09-08T17:15:15.739Z",
+      "id": "ef02d09c-1d2f-4226-9777-37815342d5ad",
+      "createdAt": "2026-09-08T21:04:39.800Z",
+      "updatedAt": "2026-09-08T21:04:39.800Z",
       "deleted": false,
       "name": "锦程科技17号",
       "email": "customer17@demo.cn",
@@ -199,9 +210,9 @@
       "status": "disabled"
     },
     {
-      "id": "479f10b9-4ed4-4885-a4ff-ccd2224a4a48",
-      "createdAt": "2026-09-07T16:15:15.739Z",
-      "updatedAt": "2026-09-07T16:15:15.739Z",
+      "id": "93ee823a-4843-4182-af10-637259c1eb22",
+      "createdAt": "2026-09-07T20:04:39.800Z",
+      "updatedAt": "2026-09-07T20:04:39.800Z",
       "deleted": false,
       "name": "拓维网络18号",
       "email": "customer18@test.io",
@@ -209,9 +220,9 @@
       "status": "enabled"
     },
     {
-      "id": "e8f8bb6e-a07b-4d63-a135-7565dc68992d",
-      "createdAt": "2026-09-06T15:15:15.739Z",
-      "updatedAt": "2026-09-06T15:15:15.739Z",
+      "id": "dc714d45-56ac-40ef-bddd-f843b7bd32d8",
+      "createdAt": "2026-09-06T19:04:39.800Z",
+      "updatedAt": "2026-09-06T19:04:39.800Z",
       "deleted": false,
       "name": "汇通咨询19号",
       "email": "customer19@mail.com",
@@ -219,9 +230,9 @@
       "status": "enabled"
     },
     {
-      "id": "541e87ca-aa4e-4bb7-a6fc-11494a8727a1",
-      "createdAt": "2026-09-05T14:15:15.739Z",
-      "updatedAt": "2026-09-05T14:15:15.739Z",
+      "id": "e00a297c-e990-4685-a9ee-20efd6fba1c3",
+      "createdAt": "2026-09-05T18:04:39.800Z",
+      "updatedAt": "2026-09-05T18:04:39.800Z",
       "deleted": false,
       "name": "嘉禾贸易20号",
       "email": "customer20@corp.net",
@@ -229,9 +240,9 @@
       "status": "enabled"
     },
     {
-      "id": "7c2bc7ab-1905-4049-bf08-06a9c7b3dca9",
-      "createdAt": "2026-09-04T13:15:15.739Z",
-      "updatedAt": "2026-09-04T13:15:15.739Z",
+      "id": "809012f9-de58-44ff-9464-df8ea02ad50e",
+      "createdAt": "2026-09-04T17:04:39.800Z",
+      "updatedAt": "2026-09-04T17:04:39.800Z",
       "deleted": false,
       "name": "星辰数据21号",
       "email": "customer21@example.com",
@@ -240,9 +251,9 @@
       "remark": "重点客户，备注 21"
     },
     {
-      "id": "19ff0d91-66ad-4965-bf8e-89dbbd4b717d",
-      "createdAt": "2026-09-03T12:15:15.739Z",
-      "updatedAt": "2026-09-03T12:15:15.739Z",
+      "id": "08af3a86-2cec-4cfe-8661-a875b54f18a9",
+      "createdAt": "2026-09-03T16:04:39.800Z",
+      "updatedAt": "2026-09-03T16:04:39.800Z",
       "deleted": false,
       "name": "蓝海电子22号",
       "email": "customer22@demo.cn",
@@ -250,9 +261,9 @@
       "status": "enabled"
     },
     {
-      "id": "ff99ea0a-b223-43fd-a61f-e22024748ef6",
-      "createdAt": "2026-09-02T11:15:15.739Z",
-      "updatedAt": "2026-09-02T11:15:15.739Z",
+      "id": "c0a2173d-8486-4a2b-b7ff-75ea8cc5443b",
+      "createdAt": "2026-09-02T15:04:39.800Z",
+      "updatedAt": "2026-09-02T15:04:39.800Z",
       "deleted": false,
       "name": "朝阳信息23号",
       "email": "customer23@test.io",
@@ -260,9 +271,9 @@
       "status": "enabled"
     },
     {
-      "id": "438ae3b2-8d22-4be7-9413-025519164eb5",
-      "createdAt": "2026-09-01T10:15:15.739Z",
-      "updatedAt": "2026-09-01T10:15:15.739Z",
+      "id": "323a81d2-d081-4450-bf28-1fe2892908cc",
+      "createdAt": "2026-09-01T14:04:39.800Z",
+      "updatedAt": "2026-09-01T14:04:39.800Z",
       "deleted": false,
       "name": "恒信智能24号",
       "email": "customer24@mail.com",
@@ -270,9 +281,9 @@
       "status": "enabled"
     },
     {
-      "id": "f7118595-dfc3-4abe-a234-3de659a62983",
-      "createdAt": "2026-09-01T09:15:15.739Z",
-      "updatedAt": "2026-09-01T09:15:15.739Z",
+      "id": "77490a89-6376-4f57-b56e-aaf1f70b4dc8",
+      "createdAt": "2026-09-01T13:04:39.800Z",
+      "updatedAt": "2026-09-01T13:04:39.800Z",
       "deleted": false,
       "name": "睿思科技25号",
       "email": "customer25@corp.net",
@@ -280,9 +291,9 @@
       "status": "disabled"
     },
     {
-      "id": "43182312-d596-4619-b16b-f8d011199d90",
-      "createdAt": "2026-08-31T08:15:15.739Z",
-      "updatedAt": "2026-08-31T08:15:15.739Z",
+      "id": "ef4fbfe1-5c17-49c6-842b-80035de9af26",
+      "createdAt": "2026-08-31T12:04:39.800Z",
+      "updatedAt": "2026-08-31T12:04:39.800Z",
       "deleted": false,
       "name": "云帆网络26号",
       "email": "customer26@example.com",
@@ -291,9 +302,9 @@
       "remark": "重点客户，备注 26"
     },
     {
-      "id": "8c60512d-c263-49dc-a141-c9ee724ab953",
-      "createdAt": "2026-08-30T07:15:15.739Z",
-      "updatedAt": "2026-08-30T07:15:15.739Z",
+      "id": "e7bd55f6-08ae-4bfa-85ad-d793b4188aa2",
+      "createdAt": "2026-08-30T11:04:39.800Z",
+      "updatedAt": "2026-08-30T11:04:39.800Z",
       "deleted": false,
       "name": "锦程咨询27号",
       "email": "customer27@demo.cn",
@@ -301,9 +312,9 @@
       "status": "enabled"
     },
     {
-      "id": "be409d93-fe63-4c83-a29d-c0a63d07804f",
-      "createdAt": "2026-08-29T06:15:15.739Z",
-      "updatedAt": "2026-08-29T06:15:15.739Z",
+      "id": "88df2830-6871-4350-9d3a-42265f7ed532",
+      "createdAt": "2026-08-29T10:04:39.800Z",
+      "updatedAt": "2026-08-29T10:04:39.800Z",
       "deleted": false,
       "name": "拓维贸易28号",
       "email": "customer28@test.io",
@@ -311,9 +322,9 @@
       "status": "enabled"
     },
     {
-      "id": "23c58c1f-d9d3-44ea-be84-fcb9e14c8331",
-      "createdAt": "2026-08-28T05:15:15.739Z",
-      "updatedAt": "2026-08-28T05:15:15.739Z",
+      "id": "98f2d9f2-5da6-42fd-9625-650a401a3a6c",
+      "createdAt": "2026-08-28T09:04:39.800Z",
+      "updatedAt": "2026-08-28T09:04:39.800Z",
       "deleted": false,
       "name": "汇通数据29号",
       "email": "customer29@mail.com",
@@ -321,9 +332,9 @@
       "status": "disabled"
     },
     {
-      "id": "cdb77ef8-0e7d-4dd0-91c0-9ebadc9f8148",
-      "createdAt": "2026-08-27T04:15:15.739Z",
-      "updatedAt": "2026-08-27T04:15:15.739Z",
+      "id": "4db99e97-e7d2-4957-b341-f67581b513b2",
+      "createdAt": "2026-08-27T08:04:39.800Z",
+      "updatedAt": "2026-08-27T08:04:39.800Z",
       "deleted": false,
       "name": "嘉禾电子30号",
       "email": "customer30@corp.net",
@@ -331,9 +342,9 @@
       "status": "enabled"
     },
     {
-      "id": "31eb422c-4dbd-477b-8445-370baf7973c7",
-      "createdAt": "2026-09-25T03:15:15.739Z",
-      "updatedAt": "2026-09-25T03:15:15.739Z",
+      "id": "ae9bbd70-0796-4ed0-9690-b0fe0df14660",
+      "createdAt": "2026-09-25T07:04:39.800Z",
+      "updatedAt": "2026-09-25T07:04:39.800Z",
       "deleted": false,
       "name": "星辰信息31号",
       "email": "customer31@example.com",
@@ -342,9 +353,9 @@
       "remark": "重点客户，备注 31"
     },
     {
-      "id": "cd6401e2-a94c-4860-a1d7-39e1e09a0291",
-      "createdAt": "2026-09-24T02:15:15.739Z",
-      "updatedAt": "2026-09-24T02:15:15.739Z",
+      "id": "f1591371-4c88-4cc2-a8f8-c259387a4139",
+      "createdAt": "2026-09-24T06:04:39.800Z",
+      "updatedAt": "2026-09-24T06:04:39.800Z",
       "deleted": false,
       "name": "蓝海智能32号",
       "email": "customer32@demo.cn",
@@ -352,9 +363,9 @@
       "status": "enabled"
     },
     {
-      "id": "053d045f-8129-466a-babb-6cf20cb392b1",
-      "createdAt": "2026-09-23T01:15:15.739Z",
-      "updatedAt": "2026-09-23T01:15:15.739Z",
+      "id": "dfb2bb8c-888e-4f6d-a4b8-eca9fef4fbb6",
+      "createdAt": "2026-09-23T05:04:39.800Z",
+      "updatedAt": "2026-09-23T05:04:39.800Z",
       "deleted": false,
       "name": "朝阳科技33号",
       "email": "customer33@test.io",
@@ -362,9 +373,9 @@
       "status": "disabled"
     },
     {
-      "id": "f8ce3ba5-8f04-4a15-a1dd-ed5d8ec82140",
-      "createdAt": "2026-09-22T00:15:15.739Z",
-      "updatedAt": "2026-09-22T00:15:15.739Z",
+      "id": "de67813d-6992-4fca-8721-4d9050e0efba",
+      "createdAt": "2026-09-22T04:04:39.800Z",
+      "updatedAt": "2026-09-22T04:04:39.800Z",
       "deleted": false,
       "name": "恒信网络34号",
       "email": "customer34@mail.com",
@@ -372,9 +383,9 @@
       "status": "enabled"
     },
     {
-      "id": "fcc377d6-abb6-4e6c-919a-664ae0a1efce",
-      "createdAt": "2026-09-20T23:15:15.739Z",
-      "updatedAt": "2026-09-20T23:15:15.739Z",
+      "id": "69a7f109-7377-474c-84f3-eb9e59a05e66",
+      "createdAt": "2026-09-21T03:04:39.800Z",
+      "updatedAt": "2026-09-21T03:04:39.800Z",
       "deleted": false,
       "name": "睿思咨询35号",
       "email": "customer35@corp.net",
@@ -382,9 +393,9 @@
       "status": "enabled"
     },
     {
-      "id": "6c3ed6c1-6632-4aa1-9655-d09e2ef60733",
-      "createdAt": "2026-09-19T22:15:15.739Z",
-      "updatedAt": "2026-09-19T22:15:15.739Z",
+      "id": "0c620a41-9b1a-4ee8-a020-1549b77f3dd1",
+      "createdAt": "2026-09-20T02:04:39.800Z",
+      "updatedAt": "2026-09-20T02:04:39.800Z",
       "deleted": false,
       "name": "云帆贸易36号",
       "email": "customer36@example.com",
@@ -393,9 +404,9 @@
       "remark": "重点客户，备注 36"
     },
     {
-      "id": "7bc9fccd-4d86-48ae-b260-78b2ba701be7",
-      "createdAt": "2026-09-18T21:15:15.739Z",
-      "updatedAt": "2026-09-18T21:15:15.739Z",
+      "id": "2e4904df-fc87-40ec-8047-f921a611c411",
+      "createdAt": "2026-09-19T01:04:39.800Z",
+      "updatedAt": "2026-09-19T01:04:39.800Z",
       "deleted": false,
       "name": "锦程数据37号",
       "email": "customer37@demo.cn",
@@ -403,9 +414,9 @@
       "status": "disabled"
     },
     {
-      "id": "dfb48ac3-39e2-4eb3-82c3-6218b38e6d34",
-      "createdAt": "2026-09-17T20:15:15.739Z",
-      "updatedAt": "2026-09-17T20:15:15.739Z",
+      "id": "fd38807b-f178-4b80-b394-5d446805d794",
+      "createdAt": "2026-09-18T00:04:39.800Z",
+      "updatedAt": "2026-09-18T00:04:39.800Z",
       "deleted": false,
       "name": "拓维电子38号",
       "email": "customer38@test.io",
@@ -413,9 +424,9 @@
       "status": "enabled"
     },
     {
-      "id": "8c19a16c-5ce1-4b55-941a-700c82aabf38",
-      "createdAt": "2026-09-16T19:15:15.739Z",
-      "updatedAt": "2026-09-16T19:15:15.739Z",
+      "id": "2387cf15-1d80-4a2c-b4ab-04140f77684e",
+      "createdAt": "2026-09-16T23:04:39.800Z",
+      "updatedAt": "2026-09-16T23:04:39.800Z",
       "deleted": false,
       "name": "汇通信息39号",
       "email": "customer39@mail.com",
@@ -423,9 +434,9 @@
       "status": "enabled"
     },
     {
-      "id": "7355ad06-fdb1-4a6e-87b2-277e2cfd43e4",
-      "createdAt": "2026-09-15T18:15:15.739Z",
-      "updatedAt": "2026-09-15T18:15:15.739Z",
+      "id": "fc299533-ed88-4f7a-ab17-15e25c080ca8",
+      "createdAt": "2026-09-15T22:04:39.800Z",
+      "updatedAt": "2026-09-15T22:04:39.800Z",
       "deleted": false,
       "name": "嘉禾智能40号",
       "email": "customer40@corp.net",
@@ -433,9 +444,9 @@
       "status": "enabled"
     },
     {
-      "id": "179cf295-2cf0-4e87-b94e-7f992eb0ad61",
-      "createdAt": "2026-09-14T17:15:15.739Z",
-      "updatedAt": "2026-09-14T17:15:15.739Z",
+      "id": "a5129d73-47ce-44c3-9fbc-533a02f5e3aa",
+      "createdAt": "2026-09-14T21:04:39.800Z",
+      "updatedAt": "2026-09-14T21:04:39.800Z",
       "deleted": false,
       "name": "星辰科技41号",
       "email": "customer41@example.com",
@@ -444,9 +455,9 @@
       "remark": "重点客户，备注 41"
     },
     {
-      "id": "2c5c01e5-e58a-401d-a227-e11888e8457a",
-      "createdAt": "2026-09-13T16:15:15.739Z",
-      "updatedAt": "2026-09-13T16:15:15.739Z",
+      "id": "83b4bde3-f491-4d6c-a145-5dd3b6531ce6",
+      "createdAt": "2026-09-13T20:04:39.800Z",
+      "updatedAt": "2026-09-13T20:04:39.800Z",
       "deleted": false,
       "name": "蓝海网络42号",
       "email": "customer42@demo.cn",
@@ -454,9 +465,9 @@
       "status": "enabled"
     },
     {
-      "id": "1bff3a9f-78c9-4561-b1da-a3d5e9a19877",
-      "createdAt": "2026-09-12T15:15:15.739Z",
-      "updatedAt": "2026-09-12T15:15:15.739Z",
+      "id": "19b20ecf-d19f-414a-8337-d43c364f8654",
+      "createdAt": "2026-09-12T19:04:39.800Z",
+      "updatedAt": "2026-09-12T19:04:39.800Z",
       "deleted": false,
       "name": "朝阳咨询43号",
       "email": "customer43@test.io",
@@ -464,9 +475,9 @@
       "status": "enabled"
     },
     {
-      "id": "96bf8c4e-fa10-4a7b-98ec-c7df237dbc33",
-      "createdAt": "2026-09-11T14:15:15.739Z",
-      "updatedAt": "2026-09-11T14:15:15.739Z",
+      "id": "780e130a-98d1-492c-a2a3-fe6b01a9acde",
+      "createdAt": "2026-09-11T18:04:39.800Z",
+      "updatedAt": "2026-09-11T18:04:39.800Z",
       "deleted": false,
       "name": "恒信贸易44号",
       "email": "customer44@mail.com",
@@ -474,9 +485,9 @@
       "status": "enabled"
     },
     {
-      "id": "00ae4f19-4768-4463-9d86-939c6855069e",
-      "createdAt": "2026-09-10T13:15:15.739Z",
-      "updatedAt": "2026-09-10T13:15:15.739Z",
+      "id": "4f515259-de7d-42e7-b591-d9d47786c0a8",
+      "createdAt": "2026-09-10T17:04:39.800Z",
+      "updatedAt": "2026-09-10T17:04:39.800Z",
       "deleted": false,
       "name": "睿思数据45号",
       "email": "customer45@corp.net",
@@ -484,9 +495,9 @@
       "status": "disabled"
     },
     {
-      "id": "122a3c61-5174-449c-94df-316f2589b7c5",
-      "createdAt": "2026-09-09T12:15:15.739Z",
-      "updatedAt": "2026-09-09T12:15:15.739Z",
+      "id": "81ab5d19-afd0-47e1-878a-47d885723daf",
+      "createdAt": "2026-09-09T16:04:39.800Z",
+      "updatedAt": "2026-09-09T16:04:39.800Z",
       "deleted": false,
       "name": "云帆电子46号",
       "email": "customer46@example.com",
@@ -495,9 +506,9 @@
       "remark": "重点客户，备注 46"
     },
     {
-      "id": "b9639a11-14f7-44e3-9754-02c418ac7f0b",
-      "createdAt": "2026-09-08T11:15:15.739Z",
-      "updatedAt": "2026-09-08T11:15:15.739Z",
+      "id": "dcf904dc-6bc3-4205-9e5f-8b15995391ed",
+      "createdAt": "2026-09-08T15:04:39.800Z",
+      "updatedAt": "2026-09-08T15:04:39.800Z",
       "deleted": false,
       "name": "锦程信息47号",
       "email": "customer47@demo.cn",
@@ -505,9 +516,9 @@
       "status": "enabled"
     },
     {
-      "id": "631e0a88-32d8-47bd-b9e2-f8f2c7bd51a0",
-      "createdAt": "2026-09-07T10:15:15.739Z",
-      "updatedAt": "2026-09-07T10:15:15.739Z",
+      "id": "0bdab8f8-e309-49f0-8ed1-09c4522c7d23",
+      "createdAt": "2026-09-07T14:04:39.800Z",
+      "updatedAt": "2026-09-07T14:04:39.800Z",
       "deleted": false,
       "name": "拓维智能48号",
       "email": "customer48@test.io",
@@ -515,9 +526,9 @@
       "status": "enabled"
     },
     {
-      "id": "7d9e8e90-bd41-43ea-8c96-6b3799c03004",
-      "createdAt": "2026-09-07T09:15:15.739Z",
-      "updatedAt": "2026-09-07T09:15:15.739Z",
+      "id": "99bb6194-bd7e-4d5f-9095-cfabc1bce17e",
+      "createdAt": "2026-09-07T13:04:39.800Z",
+      "updatedAt": "2026-09-07T13:04:39.800Z",
       "deleted": false,
       "name": "汇通科技49号",
       "email": "customer49@mail.com",
@@ -525,9 +536,9 @@
       "status": "disabled"
     },
     {
-      "id": "3bfa7178-a2ce-4cd2-9a42-6542b830c11e",
-      "createdAt": "2026-09-06T08:15:15.739Z",
-      "updatedAt": "2026-09-06T08:15:15.739Z",
+      "id": "49eb10b6-0781-4670-b513-1baeaf5b3cea",
+      "createdAt": "2026-09-06T12:04:39.800Z",
+      "updatedAt": "2026-09-06T12:04:39.800Z",
       "deleted": false,
       "name": "嘉禾网络50号",
       "email": "customer50@corp.net",

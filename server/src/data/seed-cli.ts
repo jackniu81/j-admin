@@ -18,7 +18,7 @@ async function main(): Promise<void> {
   await store.reseed?.();
   await app.close();
   // eslint-disable-next-line no-console
-  console.log('✅ 种子数据已重置（admin/admin, user1/user1 + 50 条客户）');
+  console.log('✅ 种子数据已重置（admin/admin, user2/user2, user3/user3 + 50 条客户）');
 }
 
 main().catch((err) => {

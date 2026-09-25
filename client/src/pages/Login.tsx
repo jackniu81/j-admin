@@ -59,7 +59,7 @@ export default function Login() {
         </Form>
 
         <Typography.Paragraph type="secondary" style={{ fontSize: 12, textAlign: 'center', marginTop: 8 }}>
-          演示账号：admin / admin &nbsp;|&nbsp; user1 / user1
+          演示账号：admin / admin &nbsp;|&nbsp; user2 / user2 &nbsp;|&nbsp; user3 / user3
         </Typography.Paragraph>
       </Card>
     </div>
