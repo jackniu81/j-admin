@@ -8,7 +8,9 @@
     "build": "nest build",
     "start": "node dist/main.js",
     "start:prod": "node dist/main.js",
-    "seed": "nest build && node dist/data/seed-cli.js"
+    "seed": "nest build && node dist/data/seed-cli.js",
+    "db:sql": "nest build && node dist/data/migration-cli.js --print",
+    "db:migrate": "nest build && node dist/data/migration-cli.js --apply"
   },
   "dependencies": {
     "@nestjs/common": "^12.0.3",
