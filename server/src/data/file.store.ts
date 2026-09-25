@@ -73,11 +73,11 @@ export class FileStore implements DataStore {
 
     if (q.keyword) {
       const kw = q.keyword.toLowerCase();
-      rows = rows.filter((r) => {
-        const a = (r as any).name ?? (r as any).username ?? '';
-        const b = (r as any).email ?? '';
-        return String(a).toLowerCase().includes(kw) || String(b).toLowerCase().includes(kw);
-      });
+      // customers 匹配 name/email，users 匹配 username/displayName
+      const fields = c === 'users' ? ['username', 'displayName'] : ['name', 'email'];
+      rows = rows.filter((r) =>
+        fields.some((f) => String((r as any)[f] ?? '').toLowerCase().includes(kw)),
+      );
     }
 
     if (q.status) {
