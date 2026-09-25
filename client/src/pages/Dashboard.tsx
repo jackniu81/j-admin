@@ -184,7 +184,7 @@ export default function Dashboard() {
             height={280}
             legend={false}
             scale={{ color: { range: ['#52c41a', '#d9d9d9'] } }}
-            label={{ position: 'middle' }}
+            label={{ position: 'inside' }}
           />
         )}
       </Card>
