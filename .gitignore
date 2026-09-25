@@ -3,6 +3,7 @@ require.md
 node_modules/
 dist/
 build/
+server/data/
 *.log
 npm-debug.log*
 .env
