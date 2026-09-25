@@ -64,7 +64,7 @@ function randomProductSales(): Named[] {
     { name: '服装鞋帽', value: 250 + Math.floor(Math.random() * 500) },
     { name: '美妆个护', value: 180 + Math.floor(Math.random() * 400) },
     { name: '食品生鲜', value: 220 + Math.floor(Math.random() * 400) },
-  ];
+  ].sort((a, b) => b.value - a.value);
 }
 
 export default function Dashboard() {
