@@ -7,13 +7,13 @@ import {
   Flex,
   Layout as AntdLayout,
   Menu,
-  Modal,
   Tag,
   Typography,
 } from 'antd';
 import type { MenuProps } from 'antd';
 import { MenuFoldOutlined, MenuUnfoldOutlined, LogoutOutlined } from '@ant-design/icons';
 import { useAuth } from '../auth/AuthContext';
+import { confirmModal } from '../utils/feedback';
 import { ROUTES } from '../routes';
 
 const { Header, Sider, Content } = AntdLayout;
@@ -72,7 +72,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       icon: <LogoutOutlined />,
       label: '退出登录',
       onClick: () => {
-        Modal.confirm({
+        confirmModal({
           title: '确认退出',
           content: '确定要退出登录吗？',
           okText: '退出',

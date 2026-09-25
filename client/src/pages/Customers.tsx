@@ -9,9 +9,10 @@ import {
   ProTable,
 } from '@ant-design/pro-components';
 import type { ActionType, ProFormInstance } from '@ant-design/pro-components';
-import { Button, message, Popconfirm, Tag } from 'antd';
+import { Button, Popconfirm, Tag } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import { useAuth } from '../auth/AuthContext';
+import { showSuccess, showWarning } from '../utils/feedback';
 import {
   apiCreateCustomer,
   apiDeleteCustomer,
@@ -121,7 +122,7 @@ export default function Customers() {
                 onConfirm={async () => {
                   try {
                     await apiDeleteCustomer(row.id);
-                    message.success('删除成功');
+                    showSuccess('删除成功');
                     actionRef.current?.reload();
                   } catch {
                     /* 拦截器已提示 */
@@ -139,10 +140,10 @@ export default function Customers() {
     try {
       if (editing) {
         await apiUpdateCustomer(editing.id, values);
-        message.success('更新成功');
+        showSuccess('更新成功');
       } else {
         await apiCreateCustomer(values);
-        message.success('新增成功');
+        showSuccess('新增成功');
       }
       actionRef.current?.reload();
       setOpen(false);
@@ -213,7 +214,7 @@ export default function Customers() {
         }}
         initialValues={{ status: 'enabled' }}
         onFinish={handleFinish}
-        onFinishFailed={() => message.warning('请修正表单错误')}
+        onFinishFailed={() => showWarning('请修正表单错误')}
       >
         <ProFormText
           name="name"

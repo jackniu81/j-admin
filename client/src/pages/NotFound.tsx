@@ -1,16 +1,18 @@
-import { Link } from 'react-router';
-import { Button, Space, Typography } from 'antd';
-
-const { Title, Paragraph } = Typography;
+import { useNavigate } from 'react-router';
+import { Button, Result } from 'antd';
 
 export default function NotFound() {
+  const navigate = useNavigate();
   return (
-    <Space direction="vertical" size="middle">
-      <Title level={2}>404</Title>
-      <Paragraph type="secondary">That page doesn&apos;t exist.</Paragraph>
-      <Link to="/">
-        <Button type="primary">← Back home</Button>
-      </Link>
-    </Space>
+    <Result
+      status="404"
+      title="404"
+      subTitle="抱歉，你访问的页面不存在。"
+      extra={
+        <Button type="primary" onClick={() => navigate('/', { replace: true })}>
+          返回首页
+        </Button>
+      }
+    />
   );
 }

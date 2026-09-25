@@ -1,5 +1,5 @@
 import axios, { AxiosError, type InternalAxiosRequestConfig } from 'axios';
-import { message } from 'antd';
+import { showError } from '../utils/feedback';
 
 const TOKEN_KEY = 'j-admin.token';
 
@@ -49,12 +49,17 @@ http.interceptors.response.use(
     const status = error.response?.status;
     const bizMsg = error.response?.data?.message;
 
+    // 网络断开（无 response）
+    if (!error.response) {
+      showError('网络连接异常，请检查后端服务');
+      return Promise.reject(error);
+    }
+
     if (status === 401) {
       clearToken();
       if (!redirecting) {
         redirecting = true;
-        message.error(bizMsg || '登录已过期，请重新登录');
-        // 记住当前路径供登录后回跳
+        showError(bizMsg || '登录已过期，请重新登录');
         const from = window.location.pathname;
         window.location.href = `/login?from=${encodeURIComponent(from)}`;
       }
@@ -62,12 +67,22 @@ http.interceptors.response.use(
     }
 
     if (status === 403) {
-      message.error(bizMsg || '无权执行该操作');
+      showError(bizMsg || '无权执行该操作');
       return Promise.reject(error);
     }
 
-    // 其余错误：展示后端 message 或兜底
-    message.error(bizMsg || '请求失败，请稍后重试');
+    if (status === 404) {
+      showError(bizMsg || '请求的资源不存在');
+      return Promise.reject(error);
+    }
+
+    if (status && status >= 500) {
+      showError(bizMsg || '服务器繁忙，请稍后再试');
+      return Promise.reject(error);
+    }
+
+    // 400 / 409 等业务错误：优先展示后端 message（含字段级 errors 由具体页面处理）
+    showError(bizMsg || '请求失败，请稍后重试');
     return Promise.reject(error);
   },
 );
