@@ -8,6 +8,8 @@
 - **Dashboard 看板**：统计卡片 + 折线 / 饼图 / 柱状图（@ant-design/plots）
 - **统一约定**：后端全局响应体 `{ code, data, message }` + 全局异常过滤 + 分类业务错误码
 
+![Dashboard 看板](./docs/images/Dashboard-2.png)
+
 > 界面截图与逐页操作说明见 **[使用手册 docs/user-guide.md](./docs/user-guide.md)**。
 
 ## 技术栈
@@ -133,8 +135,6 @@ npm run seed -w server
 ## 功能与界面
 
 侧边栏 9 个菜单，M1 P0（登录 + 布局 + 数据表格）、M2 P1（Dashboard + 表单）、M3 P2（通用能力）已全部落地。
-
-![Dashboard 看板](./docs/images/Dashboard-2.png)
 
 | 模块 | 状态 | 说明 |
 | --- | --- | --- |
