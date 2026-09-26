@@ -35,6 +35,7 @@ const Dashboard = lazy(() => import('./pages/Dashboard'));
 const Customers = lazy(() => import('./pages/Customers'));
 const Orders = lazy(() => import('./pages/Orders'));
 const Products = lazy(() => import('./pages/Products'));
+const Reports = lazy(() => import('./pages/Reports'));
 const Users = lazy(() => import('./pages/Users'));
 // 未实现模块共用的占位页（#23）
 const ComingSoon = lazy(() => import('./pages/ComingSoon'));
@@ -67,7 +68,7 @@ export const ROUTES: AppRoute[] = [
   {
     path: '/reports',
     label: '报表中心',
-    component: ComingSoon,
+    component: Reports,
     meta: { title: '报表中心', breadcrumb: ['首页', '报表中心'], icon: BarChartOutlined },
   },
   {

@@ -8,6 +8,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
 import { DataModule } from './data/data.module';
 import { OrdersModule } from './orders/orders.module';
 import { ProductsModule } from './products/products.module';
+import { ReportsModule } from './reports/reports.module';
 import { UploadModule } from './upload/upload.module';
 import { UsersModule } from './users/users.module';
 import { VersionModule } from './version/version.module';
@@ -23,6 +24,7 @@ import { VersionModule } from './version/version.module';
     UploadModule,
     UsersModule,
     DashboardModule,
+    ReportsModule,
     VersionModule,
   ],
   providers: [
