@@ -5,7 +5,8 @@
 - **双数据源一键切换**：默认文件数据库（免安装，开箱即用），配置 `DB_DRIVER=postgres` 即切 PostgreSQL
 - **认证与鉴权**：JWT + 全局 Guard + `@Roles` RBAC，路由守卫与后端二次校验双保险
 - **后台高频 CRUD**：ProTable 列表（搜索 / 筛选 / 排序 / 分页）+ ModalForm 表单 + 软删除二次确认
-- **Dashboard 看板**：统计卡片 + 折线 / 饼图 / 柱状图（@ant-design/plots）
+- **Dashboard 看板与报表中心**：统计卡片 + 折线 / 饼 / 柱状图（@ant-design/plots），时间维度 7/14/30 天切换，空数据自动 mock 兑底（demo 观感）
+- **图片上传基座**：本地磁盘存储（multer，按月归档 + uuid 命名），可平滑替换为 OSS，接口契约不变
 - **统一约定**：后端全局响应体 `{ code, data, message }` + 全局异常过滤 + 分类业务错误码
 
 ![Dashboard 看板](./docs/images/Dashboard-2.png)
@@ -24,6 +25,7 @@
 | 密码哈希 | bcryptjs | 3 |
 | 数据访问 | 自研 `DataStore` 抽象（FileStore / PostgresStore 双实现，无 ORM） | — |
 | 数据库 | 文件数据库（默认）/ PostgreSQL（`pg` 驱动）按配置切换 | pg 8 |
+| 文件上传 | @nestjs/platform-express + multer（本地磁盘基座） | 2 |
 | 前端框架 | React | 19 |
 | 构建工具 | Vite（dev 代理 `/api` → 3000） | 8 |
 | 路由 / 请求 | React Router / axios（同源相对 `/api`） | 8 / 1.2 |
@@ -120,9 +122,9 @@ PG_DATABASE=j_admin
 | --- | --- | --- |
 | 自动迁移（推荐） | 直接 `npm run dev` / `npm start` | `DB_DRIVER=postgres` 时 `PostgresStore.init()` 启动即应用未执行的迁移 |
 | 手动迁移 | `npm run db:migrate -w server` | 读 `server/.env` 的 PG 配置，应用后退出 |
-| 纯 SQL 脚本 | `psql -d j_admin -f server/schema.sql` | 无 Node 环境时给 DBA / psql 用；`npm run db:sql -w server` 可重新生成 |
+| 纯 SQL 脚本 | `psql -d j_admin -f docs/sql/postgres-schema.sql` | 无 Node 环境时给 DBA / psql 用；`npm run db:sql -w server` 可重新生成 |
 
-迁移定义在 `server/src/data/migrations/`（`0001` 建表、`0002` 部分唯一索引 + 查询索引），forward-only，记录于 `schema_migrations` 表。
+迁移定义在 `server/src/data/migrations/`（`0001` 建表、`0002` 部分唯一索引 + 查询索引、`0003` orders/products 建表建索引），forward-only，记录于 `schema_migrations` 表。
 
 **④ 灌入种子数据**：
 
@@ -134,15 +136,19 @@ npm run seed -w server
 
 ## 功能与界面
 
-侧边栏 9 个菜单，M1 P0（登录 + 布局 + 数据表格）、M2 P1（Dashboard + 表单）、M3 P2（通用能力）已全部落地。
+侧边栏 9 个菜单，M1 P0（登录 + 布局 + 数据表格）、M2 P1（Dashboard + 表单）、M3 P2（通用能力）已全部落地；M4 的订单 / 商品 / 报表三个业务页已实现。
 
 | 模块 | 状态 | 说明 |
 | --- | --- | --- |
 | 登录 / 路由守卫 | ✅ 已实现 | JWT、token 过期跳登录、角色过滤 |
-| 首页 Dashboard | ✅ 已实现 | 统计卡片 + 趋势折线 + 饼图/柱状图 |
+| 首页 Dashboard | ✅ 已实现 | 统计卡片 + 趋势/状态/分类图表，数据全部来自服务端真实口径 |
 | 客户管理 | ✅ 已实现 | 列表/搜索/筛选/排序/新增/编辑/软删除 |
+| 订单管理 | ✅ 已实现 | 主从结构（明细行）+ 状态机流转 + 日期区间筛选 + 金额后端重算防篡改 |
+| 商品管理 | ✅ 已实现 | CRUD + 上下架 + 图片上传回显 + 缩略图预览 |
+| 报表中心 | ✅ 已实现 | 销售额/订单数/客单价/取消率 + 趋势/状态分布/分类 TOP5，空数据自动 mock |
+| 图片上传 | ✅ 已实现 | 本地磁盘基座（2MB / 类型白名单），可替换 OSS |
 | 用户管理 | ✅ 已实现（仅 admin） | 列表/新建/启用禁用/删除 |
-| 订单 / 商品 / 报表 / 消息 / 操作日志 / 系统设置 | 🚧 占位页 | 点击进入「功能开发中」 |
+| 消息通知 / 操作日志 / 系统设置 | 🚧 占位页 | 点击进入「功能开发中」 |
 
 各页截图与操作细节见 **[docs/user-guide.md](./docs/user-guide.md)**。
 
@@ -157,10 +163,10 @@ npm run seed -w server
 │   │   ├── config/    # 环境变量校验与类型化读取
 │   │   ├── data/      # DataStore 抽象 + FileStore/PostgresStore + 迁移 + seed
 │   │   ├── common/    # 全局响应拦截、异常过滤、JWT Guard、RBAC
-│   │   └── {auth,customers,users,dashboard}/  # 业务模块
-│   ├── schema.sql     # 由 db:sql 生成的 PG 初始化脚本
+│   │   └── {auth,customers,users,orders,products,reports,upload,dashboard}/  # 业务模块
+│   ├── uploads/     # 图片上传落盘目录（按月归档，不入 git）
 │   └── .env.example   # 环境变量示例
-└── docs/              # spec / issues / user-guide + 截图
+└── docs/              # spec / issues / user-guide / sql + 截图
 ```
 
 ## 常用脚本
@@ -179,17 +185,18 @@ npm run seed -w server
 - **[docs/user-guide.md](./docs/user-guide.md)** —— 使用手册：按界面逐项介绍，含截图与角色权限矩阵
 - [docs/spec.md](./docs/spec.md) —— 功能规格：架构约定、双数据源方案、统一响应与错误码、RBAC 权限矩阵、API 契约、验收标准
 - [docs/issues.md](./docs/issues.md) —— Issue 与 Milestone 规划
-- [server/schema.sql](./server/schema.sql) —— PostgreSQL 初始化脚本
+- [docs/sql/postgres-schema.sql](./docs/sql/postgres-schema.sql) —— PostgreSQL 初始化脚本（由 `npm run db:sql -w server` 生成）
 
 ## 当前进度与下一步
 
-**已完成**（M1 P0 + M2 P1 + M3 P2，共 8 个 issue）：数据层基座、认证与 RBAC、客户/用户业务接口、前端登录与路由守卫、后台骨架布局、客户/用户管理页、Dashboard 看板、通用能力收口，以及演示数据与文档。
+**已完成**（M1 P0 + M2 P1 + M3 P2 共 8 个 issue；M4 进行中）：数据层基座、认证与 RBAC、客户/用户业务接口、前端登录与路由守卫、后台骨架布局、客户/用户管理页、Dashboard 看板、通用能力收口；M4 已落地数据层扩展（orders/products）、订单页、商品页 + 图片上传基座、报表中心与 Dashboard 去随机化，以及演示数据与文档。
 
 **待实现**：
 
-1. 6 个占位菜单的业务实现（订单 / 商品 / 报表 / 消息 / 操作日志 / 系统设置）
-2. 第二部分完善功能（微信登录/支付、文件上传、Excel 导出、暗黑模式）
-3. Docker 部署与 PostgreSQL 环境实测
+1. PostgreSQL 集成实测（本地已装 PG，file / pg 双模式对拍收口）
+2. 剩余 3 个占位菜单的业务实现（消息 / 操作日志 / 系统设置）
+3. 第二部分完善功能（微信登录/支付、Excel 导出、暗黑模式；文件上传已随 #34 落地本地基座）
+4. Docker 部署
 
 具体进度以 [issue 列表](https://github.com/jackniu81/j-admin/issues) 为准。本期**不做**：测试框架搭建。
 

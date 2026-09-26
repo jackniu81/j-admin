@@ -5,7 +5,7 @@ import { MIGRATIONS } from './migrations';
  * 迁移脚本 CLI。
  *
  * npm run db:sql -w server     打印等价 SQL 脚本到 stdout（本地无 PG 时给 DBA / psql 用）
- *                              落盘： node dist/data/migration-cli.js > schema.sql
+ *                              落盘： node dist/data/migration-cli.js > ../docs/sql/postgres-schema.sql
  * npm run db:migrate -w server 真正应用到 PG（读 server/.env 的 PG_* 配置，跑完即退出）
  *
  * 说明：正常情况下无需手工执行——DB_DRIVER=postgres 时 PostgresStore.init() 会自动迁移，

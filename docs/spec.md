@@ -25,6 +25,10 @@ server (NestJS 12 + Express 5)
    ├─ CustomerModule  业务数据 CRUD（P0 主表格）
    ├─ UserModule      用户管理（仅 admin）
    ├─ DashboardModule 统计卡片 + 趋势（P1）
+   ├─ OrdersModule    订单 CRUD + 状态流转 + 表单选项（M4）
+   ├─ ProductsModule  商品 CRUD + 上下架（M4）
+   ├─ ReportsModule   报表聚合：概览/趋势/状态分布/分类 TOP5（M4）
+   ├─ UploadModule    图片上传基座：本地磁盘 multer（M4）
    └─ DataModule      DataStore 抽象 + FileStore / PostgresStore 双实现
 ```
 
@@ -38,12 +42,16 @@ server/src/
   auth/            auth.module/controller/service, jwt.strategy, dto
   customers/       customers.module/controller/service, dto
   users/           users.module/controller/service, dto
+  orders/          orders.module/controller/service, dto（主从结构 + 状态机）
+  products/        products.module/controller/service, dto
+  reports/         reports.module/controller/service + report-mock（空数据兑底）
+  upload/          upload.module/controller + multer 配置 + MulterErrorFilter
   dashboard/       dashboard.module/controller/service
 client/src/
   api/             axios 实例 + 拦截器 + 各资源接口封装
   auth/            token 存储、RequireAuth、useAuth
   components/      Layout（已存在，需扩展为后台骨架）
-  pages/           Login / Dashboard / Customers / Users / NotFound
+  pages/           Login / Dashboard / Customers / Orders / Products / Reports / Users / NotFound
   routes.tsx       路由与菜单元数据（唯一数据源，菜单和面包屑都由它派生）
 ```
 
@@ -79,6 +87,8 @@ interface Query<T> {
   page?: number;
   pageSize?: number;
   includeDeleted?: boolean;
+  from?: string;           // createdAt 区间下界（含，M4 订单列表按日期筛选）
+  to?: string;             // createdAt 区间上界（含）
 }
 
 interface DataStore {
@@ -91,14 +101,14 @@ interface DataStore {
   softDelete<T extends Collection>(c: T, id: string): Promise<Entity>;
   count<T extends Collection>(c: T, where?: Partial<Entity>): Promise<number>;
 }
-type Collection = 'users' | 'customers';
+type Collection = 'users' | 'customers' | 'products' | 'orders';
 ```
 
 | | `FileStore` | `PostgresStore` |
 | --- | --- | --- |
-| 存储 | 读入 `db.json` 到内存，写操作**同步落盘**（先写 `.tmp` 再 rename，避免半写损坏） | `pg` 连接池，两张表 `users` / `customers` |
+| 存储 | 读入 `db.json` 到内存，写操作**同步落盘**（先写 `.tmp` 再 rename，避免半写损坏） | `pg` 连接池，四张表 `users` / `customers` / `products` / `orders` |
 | 建表 | 文件不存在则写入 seed | `init()` 按 `schema_migrations` 应用版本化迁移（见 §3.5） |
-| 分页排序 | 内存 `filter/sort/slice` | SQL `LIMIT/OFFSET` + 参数化 `ORDER BY`（排序列走白名单映射） |
+| 分页排序 | 内存 `filter/sort/slice` | SQL `LIMIT/OFFSET` + `COUNT(*) OVER()` 一次取总数；排序列 / keyword 命中列均走白名单映射 |
 | 适用 | 演示、测试、无 PG 环境 | 接近真实交付 |
 
 ### 3.3 数据模型
@@ -123,14 +133,35 @@ email: string;         // 必填，邮箱格式，唯一（同上，软删除后
 phone?: string;        // 选填，11 位手机号
 status: 'enabled' | 'disabled';
 remark?: string;       // 选填，≤200 字
+
+// products（M4，商品主表）
+name: string;          // 必填，≤50 字（无库级唯一约束，名称允许重复）
+category: '数码配件' | '家居用品' | '服装鞋帽' | '美妆个护' | '食品生鲜';
+price: number;         // 0 ~ 999999，前端保留 2 位小数
+stock: number;         // 整数 0 ~ 9999999
+image?: string;        // 上传返回的相对 URL，如 /uploads/2026-09/xxx.png
+status: 'on' | 'off';  // 上架 / 下架
+remark?: string;       // 选填，≤200 字
+
+// orders（M4，主从结构：主单 + 明细行）
+orderNo: string;       // 唯一（部分索引，软删后可重建）；留空由后端生成 ORD+时间戳+随机
+customerId: string;    // 关联客户（下单时校验存在性）
+customerName: string;  // 下单时的客户名快照，不随客户改名变化
+amount: number;        // 明细汇总，由后端按商品表重算，不信任前端传值
+status: 'pending' | 'paid' | 'completed' | 'cancelled'; // 状态机见 §7.3
+items: string;         // JSON.stringify(OrderItem[]) 单列存储，保证 file / pg 同构
+                       // OrderItem = { productId, name, price, qty }（name/price 为下单时快照）
+remark?: string;
 ```
 
 > 密码用 `bcryptjs`（纯 JS 实现）而非 `bcrypt`，避免 Windows 下 node-gyp 编译失败。
 
 ### 3.4 种子数据（`server/src/data/seed.ts`）
 
-- 账号：`admin / admin123`（role=admin）、`user1 / user123`（role=user）
+- 账号：`admin / admin`（role=admin）、`user2 / user2`、`user3 / user3`（role=user）
 - 客户：**50 条**，`createdAt` 分散在最近 30 天，`status` 混合 enabled/disabled —— 保证分页、搜索、筛选、排序、趋势图都有真实观感
+- 商品：**22 条**，覆盖 5 个分类，上架/下架混合（M4）
+- 订单：**60 条**，引用真实客户与商品，四态混合，`amount` 由 items 汇总 —— 供报表/看板联动（M4）
 - 首次启动（文件不存在 / 表为空）自动写入；提供 `npm run seed -w server` 可强制重置
 
 ### 3.5 postgres 建表 DDL 与迁移策略
@@ -149,7 +180,15 @@ remark?: string;       // 选填，≤200 字
 | 回滚 | 不提供 down migration，回滚靠备份恢复 |
 | 依赖 | 不引入 ORM / 迁移 CLI，与 `FileStore` 对等的零依赖心智 |
 
-**0001 建表**（列名 = 实体字段 snake_case，时间列 `text` 存 ISO 8601，与 file 模式表示一致）
+**迁移序列**
+
+| 版本 | 内容 |
+| --- | --- |
+| `0001` | 建表 `users` / `customers`（见下方 SQL） |
+| `0002` | 部分唯一索引 + 查询索引（见下方 SQL） |
+| `0003` | 建表 `products` / `orders` + 对应索引（M4，issue #31）；`orders.order_no` 部分唯一索引；products 无库级唯一约束（名称可重复）；`items` 以 text 存 JSON 保证双模式同构 |
+
+`0001 / 0003` 列定义均为：列名 = 实体字段 snake_case，时间列 `text` 存 ISO 8601，与 file 模式表示一致。
 
 ```sql
 CREATE TABLE IF NOT EXISTS users (
@@ -198,7 +237,7 @@ CREATE INDEX IF NOT EXISTS ix_customers_created        ON customers (deleted, cr
 
 `findOne` / `update` / `softDelete` 走 `id` 主键，无需额外索引。
 
-**冲突处理**：`insert` / `update` 捕获 pg 错误码 `23505` → `BizException(40900, '用户名已存在' | '邮箱已被使用')`，由全局过滤器映射为 HTTP 409（§4.2）。文案常量集中在 `server/src/data/unique-rule.ts`。
+**冲突处理**：`insert` / `update` 捕获 pg 错误码 `23505` → `BizException(40900, '用户名已存在' | '邮箱已被使用')`，由全局过滤器映射为 HTTP 409（§4.2）。文案常量集中在 `server/src/data/unique-rule.ts`。`orders.order_no` 冲突同样映射 `40900`；products 无唯一约束不拦截。
 
 **脚本导出**（本地无 PG 时给 DBA 评审 / 手工执行）：
 
@@ -266,6 +305,10 @@ HTTP 状态码与业务码并存：HTTP 走标准语义（401 未认证 / 403 �
 | 客户列表查询（分页/搜索/筛选/排序） | ✅ | ✅ |
 | 客户新增 / 编辑 | ✅ | ❌ `40300` |
 | 客户删除（软删除） | ✅ | ❌ `40300` |
+| 订单 / 商品 / 报表查看 | ✅ | ✅ |
+| 订单新增 / 编辑 / 状态流转 / 删除 | ✅ | ❌ `40300` |
+| 商品新增 / 编辑 / 上下架 / 删除 | ✅ | ❌ `40300` |
+| 图片上传 | ✅ | ❌ `40300` |
 | 用户管理菜单与接口 | ✅ | ❌ 菜单不可见 + 接口 `40300` |
 
 > 前端隐藏菜单只是体验，**后端 Guard 才是真正的权限边界**，两者都要做。
@@ -285,9 +328,34 @@ HTTP 状态码与业务码并存：HTTP 走标准语义（401 未认证 / 403 �
 | PATCH | `/api/users/:id/status` | admin | 启用/禁用账号 |
 | GET | `/api/dashboard/stats` | 登录 | `{totalUsers, todayNew, activeCount}` |
 | GET | `/api/dashboard/trend` | 登录 | `?days=7` → `[{date, count}]` |
+| GET | `/api/orders` | 登录 | 查询参数：`page` `pageSize` `keyword`(订单号/客户名) `status` `sortBy` `sortOrder` `from` `to`(YYYY-MM-DD) |
+| GET | `/api/orders/form-options` | 登录 | 新增表单选项：客户列表 + 上架商品列表（注册在 `:id` 之前） |
+| GET | `/api/orders/:id` | 登录 | 详情（items 反序列化为数组） |
+| POST | `/api/orders` | admin | 新增；items 只传 `{productId, qty}`，单价/金额后端按商品表重算；orderNo 留空自动生成；明细为空 `40000` |
+| PATCH | `/api/orders/:id` | admin | 编辑（重算金额） |
+| PATCH | `/api/orders/:id/status` | admin | 状态流转，非法流转 `40000`（状态机 §7.3） |
+| DELETE | `/api/orders/:id` | admin | 软删除 |
+| GET | `/api/products` | 登录 | 查询参数：`page` `pageSize` `keyword`(名称/分类) `status`(on/off) `sortBy`(name/price/stock/createdAt) |
+| POST | `/api/products` | admin | 新增（名称无唯一约束） |
+| PATCH | `/api/products/:id` | admin | 局部更新 |
+| PATCH | `/api/products/:id/status` | admin | 上架/下架 |
+| DELETE | `/api/products/:id` | admin | 软删除 |
+| GET | `/api/reports/overview` | 登录 | `?days=7\|14\|30` → `{totalSales, orderCount, avgOrderValue, cancelRate}`（金额排除 cancelled） |
+| GET | `/api/reports/sales-trend` | 登录 | `[{date, amount, count}]`，缺日补 0 |
+| GET | `/api/reports/order-status` | 登录 | 四态真实计数 `[{status, count}]` |
+| GET | `/api/reports/category-sales` | 登录 | 分类销量 TOP5 `[{category, amount, qty}]` |
+| POST | `/api/upload/image` | admin | `multipart/form-data` 字段名 `file` → `{url}`；非白名单类型 / 超 2MB `40000` |
+| GET | `/uploads/*` | 公开 | 静态资源（月份目录 + uuid 文件名，不可枚举） |
 | GET | `/api/version` | 公开 | 已存在，保留 |
 
-**查询参数校验规则**：`page ≥ 1` 默认 1；`pageSize` 1–100 默认 10；`sortBy ∈ {name, createdAt, email}`；`sortOrder ∈ {asc, desc}` 默认 `desc`；`status ∈ {enabled, disabled}`。非法值返回 `40000`。
+**查询参数校验规则**：`page ≥ 1` 默认 1；`pageSize` 1–100 默认 10；非法值返回 `40000`。各集合 `sortBy` / status 白名单：
+
+| 集合 | sortBy 白名单 | status 枚举 | 其它 |
+| --- | --- | --- | --- |
+| users | username / displayName / createdAt | active / disabled | — |
+| customers | name / email / createdAt | enabled / disabled | — |
+| orders | orderNo / amount / createdAt | pending / paid / completed / cancelled | from / to 需 `YYYY-MM-DD` 前缀；reports 的 `days ∈ {7,14,30}` 默认 30 |
+| products | name / price / stock / createdAt | on / off | — |
 
 ## 7. 前端规格
 
@@ -298,6 +366,10 @@ HTTP 状态码与业务码并存：HTTP 走标准语义（401 未认证 / 403 �
 | `/login` | Login | 公开（已登录访问则跳 `/`） | — |
 | `/` | Dashboard | 全部 | 首页 |
 | `/customers` | Customers | 全部 | 首页 / 客户管理 |
+| `/orders` | Orders | 全部 | 首页 / 订单管理 |
+| `/products` | Products | 全部 | 首页 / 商品管理 |
+| `/reports` | Reports | 全部 | 首页 / 报表中心 |
+| `/messages` | ComingSoon | 全部 | 首页 / 消息通知 |
 | `/users` | Users | 仅 admin | 首页 / 用户管理 |
 | `*` | NotFound | 全部 | — |
 
@@ -332,7 +404,7 @@ HTTP 状态码与业务码并存：HTTP 走标准语义（401 未认证 / 403 �
 
 - 三张 `Statistic` 卡片：总用户数、今日新增、活跃数量（`Row/Col` 三列，窄屏堆叠）
 - 一张 `@ant-design/plots` 折线图（近 7 天新增趋势）+ 一张柱状图（客户状态分布）
-- 数据全部来自 `/api/dashboard/*`，页面 `Skeleton` 占位直到加载完成
+- 数据全部来自 `/api/dashboard/*` 与 `/api/reports/*`（M4 去随机化：原 `random*` 前端 mock 已全部移除，统计均为服务端真实口径）
 
 ### 7.6 通用能力（P2）
 
@@ -341,14 +413,28 @@ HTTP 状态码与业务码并存：HTTP 走标准语义（401 未认证 / 403 �
 - 404：沿用现有 `NotFound.tsx`，接入后台布局
 - axios 实例统一处理：请求头注入 token、401 跳登录、错误 `message` 兜底提示
 
+### 7.7 图片上传基座（M4，随 #34 落地）
+
+- 后端：`POST /api/upload/image`（admin），multer diskStorage，落盘 `server/uploads/yyyy-mm/{uuid}{ext}`；限制 2MB，类型白名单 jpg / png / webp / gif；返回 `{ url: '/uploads/yyyy-mm/xxx.png' }`
+- `MulterError`（如 `LIMIT_FILE_SIZE`）不是 HttpException，由控制器级 `MulterErrorFilter` 局部捕获映射 `40000`，避免被全局兜底成 500
+- 静态访问：dev 由 Vite 代理 `/uploads` → 3000；prod 由 Nest 在 SPA catch-all **之前**挂 `express.static`；上传目录不入 git
+- 前端：Upload 组件走 XHR 不经 axios 实例，需手动带 `Authorization` 头；表单字段名必须为 `file`；回显只存 url 字符串
+- 基座可平滑替换为 OSS / CDN：只改 storage 落盘实现，返回 `{url}` 契约不变
+
+### 7.8 报表中心（M4，#35）
+
+- `/reports`：时间范围切换（7/14/30 天）+ 四张概览卡（销售额 / 订单数 / 客单价 / 取消率）+ 销售趋势 Line + 订单状态 Pie + 分类销量 TOP5 Column
+- 聚合口径：金额类指标均排除 cancelled；取消率 = 取消数 / 总订单数；趋势按本地日期分桶缺日补 0；分类 TOP5 按金额排序
+- 空数据兑底（demo 用）：orders 表为空时服务端自动回退 `report-mock` 生成演示数据，接口契约不变，新库未播种也有完整观感
+
 ## 8. 验收标准
 
 **P0（Milestone 1）**
 - [ ] 不配任何环境变量，`npm run dev` 直接可登录（file 模式 + 自动 seed）
 - [ ] 设 `DB_DRIVER=postgres` 并提供 PG 参数，功能表现与 file 模式**完全一致**
-- [ ] `admin/admin123` 与 `user1/user123` 均可登录；错误密码提示统一文案
+- [ ] `admin/admin` 与 `user2/user2` 均可登录；错误密码提示统一文案
 - [ ] 未登录直接访问 `/customers` 被重定向到 `/login`，登录后回到原页面
-- [ ] `user1` 侧边栏看不到「用户管理」；直接访问 `/users` 被拦截；调用增删改接口返回 `40300`
+- [ ] `user2` 侧边栏看不到「用户管理」；直接访问 `/users` 被拦截；调用增删改接口返回 `40300`
 - [ ] 客户表格分页、关键字搜索、状态筛选、创建时间排序均生效且参数透传后端
 - [ ] 新增客户时填重复邮箱，前端提示后端返回的冲突信息
 - [ ] 删除为软删除：`db.json` / 数据库中记录仍在且 `deleted=true`，列表不再显示
@@ -367,10 +453,20 @@ HTTP 状态码与业务码并存：HTTP 走标准语义（401 未认证 / 403 �
 - [ ] 后端抛未捕获异常时返回 `50000` 统一响应体，日志有完整堆栈，响应中不含堆栈
 - [ ] 401 / 403 / 400 / 409 / 500 五类错误前端提示文案各不相同且可读
 
+**M4（Milestone 4）**
+- [ ] 订单列表分页 / 关键字（订单号、客户名）/ 状态 / 日期区间筛选均生效；详情抽屉展示明细行
+- [ ] 状态流转仅允许 pending→paid/cancelled、paid→completed/cancelled，非法流转返回 `40000`；curl 同样拦截
+- [ ] 新增订单只传 `{productId, qty}`，金额由后端重算；明细为空返回 `40000`
+- [ ] 商品页 CRUD + 上下架 Switch；图片上传成功后表单回显，商品列表缩略图可访问
+- [ ] 超 2MB / 非图片类型上传被拦截（前端 beforeUpload 与服务端双重校验）
+- [ ] 报表四接口数据与 orders/products 真实统计一致；orders 表为空时自动回退 mock 演示数据
+- [ ] Dashboard 无前端随机 mock，图表数据全部来自 `/api/*`
+- [ ] PostgreSQL 模式全部功能与 file 模式表现一致（#32 对拍）
+
 ## 9. 明确不做（本期范围外）
 
 - 微信登录 / 微信支付 / 小程序对接
-- 文件与图片上传
+- 对象存储（OSS / CDN）对接——图片上传本地磁盘基座已随 #34 实现（§7.7），替换 OSS 只需改落盘实现
 - Excel 导出
 - 暗黑模式
 - refresh token、多设备登录管理、登录失败锁定
