@@ -6,6 +6,7 @@ import {
   Collection,
   CollectionEntityMap,
   DataStore,
+  KEYWORD_FIELDS,
   NewEntity,
   PageResult,
   Query,
@@ -24,7 +25,7 @@ const now = () => new Date().toISOString();
  * 先写 .tmp 再 rename，避免进程崩溃导致半写损坏（spec §3.2）。
  */
 export class FileStore implements DataStore {
-  private data: SeedData = { users: [], customers: [] };
+  private data: SeedData = { users: [], customers: [], products: [], orders: [] };
   private readonly absPath: string;
 
   constructor(private readonly opts: FileStoreOptions) {
@@ -37,6 +38,11 @@ export class FileStore implements DataStore {
     if (existsSync(this.absPath)) {
       const raw = await readFile(this.absPath, 'utf-8');
       this.data = JSON.parse(raw) as SeedData;
+      // 缺集合兜底：旧 db.json 无 orders/products 时补空数组，避免 bucket() 崩
+      this.data.users ??= [];
+      this.data.customers ??= [];
+      this.data.products ??= [];
+      this.data.orders ??= [];
       return;
     }
     // 文件不存在 -> 写入 seed
@@ -73,8 +79,7 @@ export class FileStore implements DataStore {
 
     if (q.keyword) {
       const kw = q.keyword.toLowerCase();
-      // customers 匹配 name/email，users 匹配 username/displayName
-      const fields = c === 'users' ? ['username', 'displayName'] : ['name', 'email'];
+      const fields = KEYWORD_FIELDS[c];
       rows = rows.filter((r) =>
         fields.some((f) => String((r as any)[f] ?? '').toLowerCase().includes(kw)),
       );
