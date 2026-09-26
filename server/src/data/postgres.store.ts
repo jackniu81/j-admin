@@ -136,6 +136,16 @@ export class PostgresStore implements DataStore, TransactionRunner {
       params.push(q.status);
       i++;
     }
+    if (q.from) {
+      clauses.push(`created_at >= $${i}`);
+      params.push(q.from);
+      i++;
+    }
+    if (q.to) {
+      clauses.push(`created_at <= $${i}`);
+      params.push(q.to);
+      i++;
+    }
 
     return { sql: clauses.length ? `WHERE ${clauses.join(' AND ')}` : '', params, next: i };
   }

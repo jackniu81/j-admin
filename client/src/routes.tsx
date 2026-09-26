@@ -33,6 +33,7 @@ export interface AppRoute {
 
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 const Customers = lazy(() => import('./pages/Customers'));
+const Orders = lazy(() => import('./pages/Orders'));
 const Users = lazy(() => import('./pages/Users'));
 // 未实现模块共用的占位页（#23）
 const ComingSoon = lazy(() => import('./pages/ComingSoon'));
@@ -53,7 +54,7 @@ export const ROUTES: AppRoute[] = [
   {
     path: '/orders',
     label: '订单管理',
-    component: ComingSoon,
+    component: Orders,
     meta: { title: '订单管理', breadcrumb: ['首页', '订单管理'], icon: ShoppingCartOutlined },
   },
   {

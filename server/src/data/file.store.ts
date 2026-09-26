@@ -89,6 +89,14 @@ export class FileStore implements DataStore {
       rows = rows.filter((r) => (r as any).status === q.status);
     }
 
+    // createdAt 区间（ISO 字符串同格式，字典序即时序）
+    if (q.from) {
+      rows = rows.filter((r) => r.createdAt >= q.from!);
+    }
+    if (q.to) {
+      rows = rows.filter((r) => r.createdAt <= q.to!);
+    }
+
     const sortBy = q.sortBy && SORTABLE_COLUMNS[c].includes(q.sortBy) ? q.sortBy : 'createdAt';
     const order = q.sortOrder === 'asc' ? 1 : -1;
     rows.sort((x, y) => {

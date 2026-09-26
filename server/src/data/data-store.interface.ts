@@ -89,6 +89,8 @@ export interface Query<T> {
   page?: number;
   pageSize?: number;
   includeDeleted?: boolean;
+  from?: string; // createdAt >= 的 ISO 下界（含），供列表按时间区间筛选
+  to?: string; // createdAt <= 的 ISO 上界（含）
 }
 
 export interface PageResult<E> {
