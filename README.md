@@ -1,97 +1,198 @@
-# j-admin
-J-Admin， 轻量业务管理后台
+# J-Admin
 
-# 功能
+轻量全栈业务管理后台模板 —— **NestJS + React + Ant Design**，单仓 npm workspaces，一条命令同时起前后端。
 
-为了方便测试，服务器端可以直接使用文件数据库（mock文件），或者通过配置接postgresql。
+- **双数据源一键切换**：默认文件数据库（免安装，开箱即用），配置 `DB_DRIVER=postgres` 即切 PostgreSQL
+- **认证与鉴权**：JWT + 全局 Guard + `@Roles` RBAC，路由守卫与后端二次校验双保险
+- **后台高频 CRUD**：ProTable 列表（搜索 / 筛选 / 排序 / 分页）+ ModalForm 表单 + 软删除二次确认
+- **Dashboard 看板**：统计卡片 + 折线 / 饼图 / 柱状图（@ant-design/plots）
+- **统一约定**：后端全局响应体 `{ code, data, message }` + 全局异常过滤 + 分类业务错误码
 
-## 主要核心功能
+![Dashboard 看板](./docs/images/Dashboard-2.png)
 
-> 优先级说明：`P0` 必做骨架（登录 + 布局 + 数据表格），`P1` 核心体验（看板 + 表单），`P2` 通用能力增强。建议按 P0 → P1 → P2 顺序推进。
+> 界面截图与逐页操作说明见 **[使用手册 docs/user-guide.md](./docs/user-guide.md)**。
 
-1. **身份登录模块** `P0`
-   - 角色：管理员 (admin) / 普通用户 (user1)
-   - 账号密码登录页面
-   - 登录失败提示（账号或密码错误、用户不存在）
-   - JWT token 存储、鉴权
-   - token 过期处理：过期后自动跳转登录页并提示
-   - 路由守卫：未登录不能访问后台页面
-   - 角色权限差异：普通用户 (user1) 不可见「用户管理」菜单，且无删除权限；仅管理员 (admin) 可执行增删改
-   - 退出登录
-2. **侧边导航布局（后台标准骨架）** `P0`
-   - 侧边栏菜单，可折叠
-   - 顶部导航栏（用户信息、退出）
-   - 面包屑导航，显示当前页面路径
-3. **数据表格（最重要！兼职后台项目高频功能）** `P0`
-   - 用户 / 业务数据列表（例如客户管理表）
-   - 分页
-   - 搜索框 + 筛选（按名称 / 状态筛选）
-   - 排序（按创建时间 / 名称）
-   - 新增、编辑弹窗
-   - 删除记录（二次确认弹窗，采用软删除：标记 deleted 字段而非物理删除）
-4. **基础数据看板 Dashboard 首页** `P1`
-   - 统计卡片：总用户数、今日新增、活跃数量
-   - 简单图表（折线 / 柱状，用 @ant-design/plots）
-   不需要复杂多维报表，只做展示，不用复杂计算
-5. **基础表单** `P1`
-   - 新增 / 编辑的表单，表单校验（必填、邮箱格式等）
-   - 提交 loading 状态，成功 / 失败提示
-6. **基础通用能力** `P2`
-   - 全局消息提示（成功、错误 Toast）
-   - 页面 Loading 状态
-   - 基础 404 页面
-   - 统一响应格式：后端接口统一返回 `{ code, data, message }` 结构
-   - 全局异常过滤：NestJS 全局异常过滤器统一捕获并格式化错误响应
+## 技术栈
 
-## 第二部分完善功能
-- **微信登录 / 支付对接** `P1`
-  - 微信扫码 / 公众号授权登录（OAuth2 换 openid，绑定后台账号）
-  - 微信支付 Native / JSAPI 下单、回调验签、订单状态幂等更新
-  - 小程序 `code2session` 登录与后台账号打通
-- 简单文件上传（图片，上传到本地或阿里云 OSS）`P1`
-- 状态标签（启用 / 禁用，颜色标记）`P1`
-- 数据导出 Excel（优先直接复用 ProTable 自带的导出能力，不自实现）`P2`
-- 暗黑模式（Ant Design 5 `theme.darkAlgorithm` 切换）`P2`
+| 层次 | 选型 | 版本 |
+| --- | --- | --- |
+| 语言 / 运行时 | TypeScript + Node.js | TS 5.7 / Node 20+ |
+| 仓库管理 | npm workspaces + concurrently | — |
+| 后端框架 | NestJS（Express 适配器，全局前缀 `/api`） | 12 |
+| 鉴权 | @nestjs/jwt + 自写 JwtAuthGuard / RolesGuard + RBAC 装饰器 | 12 |
+| 参数校验 | class-validator + class-transformer（全局 ValidationPipe） | 0.15 / 0.5 |
+| 密码哈希 | bcryptjs | 3 |
+| 数据访问 | 自研 `DataStore` 抽象（FileStore / PostgresStore 双实现，无 ORM） | — |
+| 数据库 | 文件数据库（默认）/ PostgreSQL（`pg` 驱动）按配置切换 | pg 8 |
+| 前端框架 | React | 19 |
+| 构建工具 | Vite（dev 代理 `/api` → 3000） | 8 |
+| 路由 / 请求 | React Router / axios（同源相对 `/api`） | 8 / 1.2 |
+| UI | Ant Design 5 + @ant-design/pro-components（ProTable / ProForm） | 5.29 / 2.8 |
+| 图表 | @ant-design/plots | 2.6 |
+| 部署 | 单进程 Node（Nest 托管前端静态 + SPA fallback），Docker 待补 | — |
 
+## 快速开始
 
-# 技术栈
+### 环境要求
 
-单仓 npm workspaces（`server` + `client`），开发期 `npm run dev` 一条命令同时起前后端，生产期由 NestJS 单进程托管前端静态资源（同源 `/api`，无需 nginx）。
+Node.js 20+，npm 9+（workspaces）。
 
-| 层次 | 选型 | 版本 | 状态 |
-| --- | --- | --- | --- |
-| 语言 / 运行时 | TypeScript + Node.js | TS 5.7 / 5.8 | 已接入 |
-| 仓库管理 | npm workspaces + concurrently | concurrently 10 | 已接入 |
-| 后端框架 | NestJS（Express 适配器） | 12 | 已接入 |
-| HTTP 服务 | Express，全局前缀 `/api` + CORS + 静态托管 + SPA fallback | 5.2 | 已接入 |
-| 前端框架 | React | 19.3 | 已接入 |
-| 构建工具 | Vite（dev 代理 `/api` 到 3000，注入 `__APP_VERSION__` / `__BUILD_TIME__`） | 8.3 | 已接入 |
-| 路由 | React Router | 8.4 | 已接入 |
-| 请求 | axios（相对 base `/api`，开发生产同源） | 1.2 | 已接入 |
-| **UI / CSS** | **Ant Design 5**（Layout / Card / Typography / Button / Descriptions） | 5.29 | 已接入 |
-| 后台组件 | @ant-design/pro-components（ProTable / ProForm） | 2.8 | 已安装，客户/用户管理页待使用 |
-| 图表 | @ant-design/plots | — | 待接入 |
-| 鉴权 | @nestjs/jwt + Guard + RBAC 装饰器 | — | 待接入 |
-| 参数校验 | class-validator + class-transformer（全局 ValidationPipe） | — | 待接入 |
-| 数据库 | PostgreSQL + 文件数据库双数据源（按配置切换） | — | 待接入 |
-| 部署 | 单进程 Node + Docker（待补） | — | 待接入 |
+### 1. 安装依赖
 
-> 原 Tailwind CSS v4 已于 UI 迁移时移除（`tailwindcss` / `@tailwindcss/vite` 依赖、`vite.config.ts` 插件、`index.css` 的 `@import` 均已清掉）。
+```bash
+npm install
+```
 
-# 文档
+### 2. 配置（可选）
 
-- [docs/spec.md](./docs/spec.md) —— 功能规格说明书：架构与目录约定、**文件/PostgreSQL 双数据源方案**、统一响应格式与错误码、鉴权与 RBAC 权限矩阵、API 契约、前端规格、验收标准
-- [docs/issues.md](./docs/issues.md) —— Issue 与 Milestone 规划：拆分粒度、依赖关系图
-- [GitHub Milestones](https://github.com/jackniu81/j-admin/milestones) —— M1 P0 后台骨架 / M2 P1 看板与表单 / M3 P2 通用能力
+默认 **file 模式零配置即可启动**。需要自定义时复制示例文件按需修改：
 
-# 下一步待完善功能
+```bash
+cp server/.env.example server/.env
+```
 
-按 [docs/issues.md](./docs/issues.md) 的依赖顺序推进，当前进度看 [issue 列表](https://github.com/jackniu81/j-admin/issues)：
+全部可用变量见 [server/.env.example](./server/.env.example)，数据源相关说明见下文 [数据库配置](#数据库配置)。
 
-1. **#1 数据层基座**（阻塞其余全部）—— `DataStore` 抽象 + FileStore / PostgresStore 双实现 + 统一响应与全局异常过滤 + 种子数据
-2. **#2 认证与 RBAC** —— 登录、JWT、Guard、角色装饰器
-3. **#3 业务接口** + **#4 前端登录与路由守卫**（可并行）
-4. **#5 后台骨架布局** → **#6 客户/用户管理页**
-5. **#7 Dashboard**（M2）、**#8 通用能力收口**（M3）
+### 3. 启动开发
 
-本期**不做**：第二部分完善功能（微信登录/支付、文件上传、状态标签、Excel 导出、暗黑模式）、测试框架搭建。
+```bash
+npm run dev
+```
+
+`concurrently` 同时拉起后端（http://localhost:3000 ，`/api`）与前端（http://localhost:5173 ，Vite 代理 `/api`）。首次以 file 模式启动会自动生成种子数据。
+
+演示账号：
+
+| 账号 | 密码 | 角色 |
+| --- | --- | --- |
+| `admin` | `admin` | 管理员（可见用户管理） |
+| `user2` | `user2` | 普通用户 |
+| `user3` | `user3` | 普通用户 |
+
+### 4. 生产构建与运行
+
+```bash
+npm run build   # 先 client 后 server
+npm start       # node server/dist/main.js
+```
+
+生产期由 NestJS 单进程托管 `client/dist` 静态资源并做 SPA fallback，同源 `/api`，无需 nginx。
+
+## 数据库配置
+
+数据源由唯一开关 `DB_DRIVER` 决定（`file` | `postgres`），二者共用同一套 `DataStore` 接口与业务代码。
+
+### 文件模式（默认）
+
+```bash
+DB_DRIVER=file
+DB_FILE=./data/db.json   # 相对 server 工作目录，即 server/data/db.json
+```
+
+整份 JSON 常驻内存、写操作先 `.tmp` 再 `rename` 原子落盘，免安装、适合本地演示。重置种子数据：
+
+```bash
+npm run seed -w server
+```
+
+### PostgreSQL 模式
+
+**① 建库**（迁移只建表，不建库，需先手动建库）：
+
+```sql
+CREATE DATABASE j_admin;
+```
+
+**② 配置 `server/.env`**：
+
+```bash
+DB_DRIVER=postgres
+PG_HOST=localhost
+PG_PORT=5432
+PG_USER=postgres
+PG_PASSWORD=your_password   # postgres 模式下必填，缺失则启动即报错
+PG_DATABASE=j_admin
+```
+
+**③ 初始化表结构**（三选一）：
+
+| 方式 | 命令 | 说明 |
+| --- | --- | --- |
+| 自动迁移（推荐） | 直接 `npm run dev` / `npm start` | `DB_DRIVER=postgres` 时 `PostgresStore.init()` 启动即应用未执行的迁移 |
+| 手动迁移 | `npm run db:migrate -w server` | 读 `server/.env` 的 PG 配置，应用后退出 |
+| 纯 SQL 脚本 | `psql -d j_admin -f server/schema.sql` | 无 Node 环境时给 DBA / psql 用；`npm run db:sql -w server` 可重新生成 |
+
+迁移定义在 `server/src/data/migrations/`（`0001` 建表、`0002` 部分唯一索引 + 查询索引），forward-only，记录于 `schema_migrations` 表。
+
+**④ 灌入种子数据**：
+
+```bash
+npm run seed -w server
+```
+
+> 本地未安装 PostgreSQL 时，保持默认 `DB_DRIVER=file` 即可，全部功能一致。
+
+## 功能与界面
+
+侧边栏 9 个菜单，M1 P0（登录 + 布局 + 数据表格）、M2 P1（Dashboard + 表单）、M3 P2（通用能力）已全部落地。
+
+| 模块 | 状态 | 说明 |
+| --- | --- | --- |
+| 登录 / 路由守卫 | ✅ 已实现 | JWT、token 过期跳登录、角色过滤 |
+| 首页 Dashboard | ✅ 已实现 | 统计卡片 + 趋势折线 + 饼图/柱状图 |
+| 客户管理 | ✅ 已实现 | 列表/搜索/筛选/排序/新增/编辑/软删除 |
+| 用户管理 | ✅ 已实现（仅 admin） | 列表/新建/启用禁用/删除 |
+| 订单 / 商品 / 报表 / 消息 / 操作日志 / 系统设置 | 🚧 占位页 | 点击进入「功能开发中」 |
+
+各页截图与操作细节见 **[docs/user-guide.md](./docs/user-guide.md)**。
+
+## 项目结构
+
+```
+.
+├── client/            # React + Vite 前端
+│   └── src/{api,auth,components,pages,routes.tsx}
+├── server/            # NestJS 后端
+│   ├── src/
+│   │   ├── config/    # 环境变量校验与类型化读取
+│   │   ├── data/      # DataStore 抽象 + FileStore/PostgresStore + 迁移 + seed
+│   │   ├── common/    # 全局响应拦截、异常过滤、JWT Guard、RBAC
+│   │   └── {auth,customers,users,dashboard}/  # 业务模块
+│   ├── schema.sql     # 由 db:sql 生成的 PG 初始化脚本
+│   └── .env.example   # 环境变量示例
+└── docs/              # spec / issues / user-guide + 截图
+```
+
+## 常用脚本
+
+| 命令 | 作用 |
+| --- | --- |
+| `npm run dev` | 同时启动前后端（开发） |
+| `npm run build` | 构建 client + server |
+| `npm start` | 生产运行（Nest 托管前端） |
+| `npm run seed -w server` | 重置种子数据 |
+| `npm run db:migrate -w server` | 应用 PostgreSQL 迁移 |
+| `npm run db:sql -w server` | 打印等价 PG SQL 脚本 |
+
+## 文档
+
+- **[docs/user-guide.md](./docs/user-guide.md)** —— 使用手册：按界面逐项介绍，含截图与角色权限矩阵
+- [docs/spec.md](./docs/spec.md) —— 功能规格：架构约定、双数据源方案、统一响应与错误码、RBAC 权限矩阵、API 契约、验收标准
+- [docs/issues.md](./docs/issues.md) —— Issue 与 Milestone 规划
+- [server/schema.sql](./server/schema.sql) —— PostgreSQL 初始化脚本
+
+## 当前进度与下一步
+
+**已完成**（M1 P0 + M2 P1 + M3 P2，共 8 个 issue）：数据层基座、认证与 RBAC、客户/用户业务接口、前端登录与路由守卫、后台骨架布局、客户/用户管理页、Dashboard 看板、通用能力收口，以及演示数据与文档。
+
+**待实现**：
+
+1. 6 个占位菜单的业务实现（订单 / 商品 / 报表 / 消息 / 操作日志 / 系统设置）
+2. 第二部分完善功能（微信登录/支付、文件上传、Excel 导出、暗黑模式）
+3. Docker 部署与 PostgreSQL 环境实测
+
+具体进度以 [issue 列表](https://github.com/jackniu81/j-admin/issues) 为准。本期**不做**：测试框架搭建。
+
+## License
+
+[MIT](./LICENSE)
