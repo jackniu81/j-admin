@@ -5,7 +5,7 @@
 - **双数据源一键切换**：默认文件数据库（免安装，开箱即用），配置 `DB_DRIVER=postgres` 即切 PostgreSQL
 - **认证与鉴权**：JWT + 全局 Guard + `@Roles` RBAC，路由守卫与后端二次校验双保险
 - **后台高频 CRUD**：ProTable 列表（搜索 / 筛选 / 排序 / 分页）+ ModalForm 表单 + 软删除二次确认
-- **Dashboard 看板与报表中心**：统计卡片 + 折线 / 饼 / 柱状图（@ant-design/plots），时间维度 7/14/30 天切换，空数据自动 mock 兑底（demo 观感）
+- **Dashboard 看板与报表中心**：统计卡片 + 折线 / 饼 / 柱状图（@ant-design/plots），时间维度 7/14/30 天切换
 - **图片上传基座**：本地磁盘存储（multer，按月归档 + uuid 命名），可平滑替换为 OSS，接口契约不变
 - **统一约定**：后端全局响应体 `{ code, data, message }` + 全局异常过滤 + 分类业务错误码
 
