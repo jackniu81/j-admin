@@ -47,3 +47,39 @@ CREATE INDEX IF NOT EXISTS ix_users_created ON users (deleted, created_at DESC);
 CREATE INDEX IF NOT EXISTS ix_customers_created ON customers (deleted, created_at DESC);
 INSERT INTO schema_migrations (version, name, applied_at) VALUES ('0002', 'unique_and_query_indexes', to_char(now() AT TIME ZONE 'utc', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'));
 COMMIT;
+
+-- ==== 0003 orders_products ====
+BEGIN;
+CREATE TABLE IF NOT EXISTS products (
+      id         text PRIMARY KEY,
+      created_at text NOT NULL,
+      updated_at text NOT NULL,
+      deleted    boolean NOT NULL DEFAULT false,
+      name       text NOT NULL,
+      category   text NOT NULL,
+      price      double precision NOT NULL,
+      stock      double precision NOT NULL,
+      image      text,
+      status     text NOT NULL,
+      remark     text
+    );
+CREATE TABLE IF NOT EXISTS orders (
+      id            text PRIMARY KEY,
+      created_at    text NOT NULL,
+      updated_at    text NOT NULL,
+      deleted       boolean NOT NULL DEFAULT false,
+      order_no      text NOT NULL,
+      customer_id   text NOT NULL,
+      customer_name text NOT NULL,
+      amount        double precision NOT NULL,
+      status        text NOT NULL,
+      items         text NOT NULL,
+      remark        text
+    );
+CREATE UNIQUE INDEX IF NOT EXISTS ux_orders_order_no ON orders (order_no) WHERE deleted = false;
+CREATE INDEX IF NOT EXISTS ix_products_status_created ON products (deleted, status, created_at DESC);
+CREATE INDEX IF NOT EXISTS ix_products_created ON products (deleted, created_at DESC);
+CREATE INDEX IF NOT EXISTS ix_orders_status_created ON orders (deleted, status, created_at DESC);
+CREATE INDEX IF NOT EXISTS ix_orders_created ON orders (deleted, created_at DESC);
+INSERT INTO schema_migrations (version, name, applied_at) VALUES ('0003', 'orders_products', to_char(now() AT TIME ZONE 'utc', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'));
+COMMIT;

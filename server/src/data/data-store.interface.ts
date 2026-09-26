@@ -27,10 +27,51 @@ export interface CustomerRow extends BaseRow {
   remark?: string;
 }
 
+/** 商品分类枚举（与 Dashboard / 报表口径一致） */
+export type ProductCategory =
+  | '数码配件'
+  | '家居用品'
+  | '服装鞋帽'
+  | '美妆个护'
+  | '食品生鲜';
+
+export interface ProductRow extends BaseRow {
+  name: string;
+  category: ProductCategory;
+  price: number;
+  stock: number;
+  image?: string; // 上传返回的相对 URL，如 /uploads/2026-09/xxx.png
+  status: 'on' | 'off'; // 上架 / 下架
+  remark?: string;
+}
+
+/** 订单状态：待付款 / 待发货 / 已完成 / 已取消 */
+export type OrderStatus = 'pending' | 'paid' | 'completed' | 'cancelled';
+
+/** 订单明细项（items 以 JSON 字符串单列存储，保证 file/pg 同构） */
+export interface OrderItem {
+  productId: string;
+  name: string;
+  price: number;
+  qty: number;
+}
+
+export interface OrderRow extends BaseRow {
+  orderNo: string; // 唯一
+  customerId: string;
+  customerName: string; // 下单时的客户名快照
+  amount: number;
+  status: OrderStatus;
+  items: string; // JSON.stringify(OrderItem[])
+  remark?: string;
+}
+
 /** 集合名 -> 实体类型 */
 export interface CollectionEntityMap {
   users: UserRow;
   customers: CustomerRow;
+  products: ProductRow;
+  orders: OrderRow;
 }
 export type Collection = keyof CollectionEntityMap;
 
@@ -74,4 +115,14 @@ export const DATA_STORE = 'DATA_STORE';
 export const SORTABLE_COLUMNS: Record<Collection, readonly string[]> = {
   users: ['username', 'displayName', 'createdAt'],
   customers: ['name', 'email', 'createdAt'],
+  products: ['name', 'price', 'stock', 'createdAt'],
+  orders: ['orderNo', 'amount', 'createdAt'],
+};
+
+/** 每个集合参与关键字模糊匹配的字段（camelCase，FileStore 用；PG 侧另见 KEYWORD_COLUMNS） */
+export const KEYWORD_FIELDS: Record<Collection, readonly string[]> = {
+  users: ['username', 'displayName'],
+  customers: ['name', 'email'],
+  products: ['name', 'category'],
+  orders: ['orderNo', 'customerName'],
 };

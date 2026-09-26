@@ -31,6 +31,8 @@ const camel = (s: string) => s.replace(/_([a-z])/g, (_, c) => c.toUpperCase());
 const KEYWORD_COLUMNS: Record<Collection, string[]> = {
   users: ['username', 'display_name'],
   customers: ['name', 'email'],
+  products: ['name', 'category'],
+  orders: ['order_no', 'customer_name'],
 };
 
 function dbToEntity(row: Record<string, any>): any {
@@ -103,7 +105,7 @@ export class PostgresStore implements DataStore, TransactionRunner {
 
   private async seedRows(): Promise<void> {
     const seed = buildSeed();
-    for (const c of ['users', 'customers'] as Collection[]) {
+    for (const c of ['users', 'customers', 'products', 'orders'] as Collection[]) {
       for (const entity of (seed as any)[c]) {
         await this.insert(c, entity);
       }
@@ -180,8 +182,9 @@ export class PostgresStore implements DataStore, TransactionRunner {
 
   /** 部分唯一索引冲突（23505）转成业务码 40900，其余异常原样向上抛 */
   private mapError(c: Collection, err: unknown): unknown {
-    if ((err as { code?: string })?.code === PG_UNIQUE_VIOLATION) {
-      return new BizException(40900, UNIQUE_CONFLICT[c].message);
+    const conflict = UNIQUE_CONFLICT[c];
+    if ((err as { code?: string })?.code === PG_UNIQUE_VIOLATION && conflict) {
+      return new BizException(40900, conflict.message);
     }
     return err;
   }
