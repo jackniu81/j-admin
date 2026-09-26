@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
   Alert,
   Button,
@@ -21,75 +21,52 @@ import {
   apiDashboardStatusDistribution,
   type DashboardStats,
   type StatusBucket,
-  type TrendPoint,
 } from '../api/dashboard';
-
-type Days = 7 | 14 | 30;
+import {
+  apiReportCategorySales,
+  apiReportOrderStatus,
+  apiReportSalesTrend,
+  type CategorySalesPoint,
+  type OrderStatusBucket,
+  type ReportDays,
+  type SalesTrendPoint,
+} from '../api/reports';
+import { ORDER_STATUS_META } from '../api/orders';
 
 const STATUS_LABEL: Record<'enabled' | 'disabled', string> = {
   enabled: '启用',
   disabled: '禁用',
 };
 
-/** 本地生成近 N 天的随机趋势数据（Issue #25：折线图不再依赖后端，视觉更活泼） */
-function randomTrend(days: Days): TrendPoint[] {
-  const out: TrendPoint[] = [];
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  for (let i = days - 1; i >= 0; i--) {
-    const d = new Date(today);
-    d.setDate(today.getDate() - i);
-    const y = d.getFullYear();
-    const m = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    out.push({ date: `${y}-${m}-${day}`, count: Math.floor(Math.random() * 21) });
-  }
-  return out;
-}
-
-/** 未实现模块 demo 图数据（一次性随机，避免 render 抖动） */
-interface Named { name: string; value: number }
-function randomOrderStatus(): Named[] {
-  return [
-    { name: '待付款', value: 20 + Math.floor(Math.random() * 60) },
-    { name: '待发货', value: 20 + Math.floor(Math.random() * 60) },
-    { name: '已完成', value: 60 + Math.floor(Math.random() * 120) },
-    { name: '已取消', value: 5 + Math.floor(Math.random() * 30) },
-  ];
-}
-function randomProductSales(): Named[] {
-  return [
-    { name: '数码配件', value: 200 + Math.floor(Math.random() * 400) },
-    { name: '家居用品', value: 150 + Math.floor(Math.random() * 400) },
-    { name: '服装鞋帽', value: 250 + Math.floor(Math.random() * 500) },
-    { name: '美妆个护', value: 180 + Math.floor(Math.random() * 400) },
-    { name: '食品生鲜', value: 220 + Math.floor(Math.random() * 400) },
-  ].sort((a, b) => b.value - a.value);
-}
-
 export default function Dashboard() {
+  // 客户统计（真实，来自 /api/dashboard/*）
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [dist, setDist] = useState<StatusBucket[] | null>(null);
-  const [days, setDays] = useState<Days>(7);
+  // 订单/商品报表（真实，来自 /api/reports/*，与报表中心口径一致）
+  const [trend, setTrend] = useState<SalesTrendPoint[]>([]);
+  const [orderStatus, setOrderStatus] = useState<OrderStatusBucket[]>([]);
+  const [categorySales, setCategorySales] = useState<CategorySalesPoint[]>([]);
+
+  const [days, setDays] = useState<ReportDays>(7);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // 每次 days 变化重新随机一组趋势；页面挂载即有数据
-  const trend = useMemo<TrendPoint[]>(() => randomTrend(days), [days]);
-  // demo 图数据只在挂载时随机一次
-  const orderStatus = useMemo<Named[]>(() => randomOrderStatus(), []);
-  const productSales = useMemo<Named[]>(() => randomProductSales(), []);
-
-  const fetchData = useCallback(async () => {
+  const fetchData = useCallback(async (d: ReportDays) => {
     setLoading(true);
     setError(null);
     try {
-      const [s, sd] = await Promise.all([
+      const [s, sd, tr, os_, ca] = await Promise.all([
         apiDashboardStats(),
         apiDashboardStatusDistribution(),
+        apiReportSalesTrend(d),
+        apiReportOrderStatus(),
+        apiReportCategorySales(d),
       ]);
       setStats(s);
       setDist(sd);
+      setTrend(tr);
+      setOrderStatus(os_);
+      setCategorySales(ca);
     } catch (e: unknown) {
       const msg =
         (e as { response?: { data?: { message?: string } } })?.response?.data?.message ||
@@ -101,8 +78,8 @@ export default function Dashboard() {
   }, []);
 
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    fetchData(days);
+  }, [days, fetchData]);
 
   // 首次加载：骨架
   if (loading && !stats && !error) {
@@ -128,7 +105,7 @@ export default function Dashboard() {
         message="数据加载失败"
         description={error}
         action={
-          <Button size="small" onClick={fetchData}>
+          <Button size="small" onClick={() => fetchData(days)}>
             重试
           </Button>
         }
@@ -138,10 +115,15 @@ export default function Dashboard() {
 
   const totalCustomers = stats?.totalUsers ?? 0;
   const isEmptyData = totalCustomers === 0;
+  const trendEmpty = trend.length === 0 || trend.every((t) => t.count === 0);
+  const statusPie = orderStatus
+    .filter((s) => s.count > 0)
+    .map((s) => ({ name: ORDER_STATUS_META[s.status].text, value: s.count }));
+  const categoryCol = categorySales.map((c) => ({ name: c.category, value: c.amount }));
 
   return (
     <div>
-      {/* 三张统计卡片 */}
+      {/* 三张统计卡片（客户，真实） */}
       <Row gutter={[16, 16]}>
         <Col xs={24} md={8}>
           <Card>
@@ -176,14 +158,14 @@ export default function Dashboard() {
         </Col>
       </Row>
 
-      {/* 折线图：近 N 天新增趋势（随机数据） */}
+      {/* 折线图：近 N 天销售趋势（真实，来自报表） */}
       <Card
         style={{ marginTop: 16 }}
-        title="客户新增趋势"
+        title="销售趋势"
         extra={
           <Radio.Group
             value={days}
-            onChange={(e) => setDays(e.target.value as Days)}
+            onChange={(e) => setDays(e.target.value as ReportDays)}
             optionType="button"
             buttonStyle="solid"
             size="small"
@@ -194,52 +176,62 @@ export default function Dashboard() {
           </Radio.Group>
         }
       >
-        <Line
-          data={trend}
-          xField="date"
-          yField="count"
-          height={280}
-          point={{ sizeField: 3 }}
-          axis={{ y: { title: '新增数' } }}
-          interaction={{ tooltip: { showCrosshairs: true } }}
-        />
+        {trendEmpty ? (
+          <Empty description="暂无销售数据" />
+        ) : (
+          <Line
+            data={trend}
+            xField="date"
+            yField="amount"
+            height={280}
+            point={{ sizeField: 3 }}
+            axis={{ y: { title: '销售额' } }}
+            interaction={{ tooltip: { showCrosshairs: true } }}
+          />
+        )}
       </Card>
 
-      {/* 状态分布 + 未实现模块 demo 图 */}
+      {/* 订单状态分布 + 商品分类销量 TOP5（真实，来自报表） */}
       <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
         <Col xs={24} md={12}>
           <Card title="订单状态分布">
-            <Pie
-              data={orderStatus}
-              angleField="value"
-              colorField="name"
-              height={280}
-              radius={0.85}
-              innerRadius={0.55}
-              label={{ text: 'value', style: { fontWeight: 'bold' } }}
-              legend={{ position: 'right' }}
-              statistic={{
-                title: { content: '订单' },
-              }}
-            />
+            {statusPie.length === 0 ? (
+              <Empty description="暂无订单数据" />
+            ) : (
+              <Pie
+                data={statusPie}
+                angleField="value"
+                colorField="name"
+                height={280}
+                radius={0.85}
+                innerRadius={0.55}
+                label={{ text: 'value', style: { fontWeight: 'bold' } }}
+                legend={{ position: 'right' }}
+                statistic={{ title: { content: '订单' } }}
+              />
+            )}
           </Card>
         </Col>
         <Col xs={24} md={12}>
           <Card title="商品分类销量 TOP 5">
-            <Column
-              data={productSales}
-              xField="name"
-              yField="value"
-              colorField="name"
-              height={280}
-              legend={false}
-              label={{ position: 'top' }}
-            />
+            {categoryCol.length === 0 ? (
+              <Empty description="暂无商品销售数据" />
+            ) : (
+              <Column
+                data={categoryCol}
+                xField="name"
+                yField="value"
+                colorField="name"
+                height={280}
+                legend={false}
+                label={{ position: 'top' }}
+              />
+            )}
           </Card>
         </Col>
       </Row>
 
-      {/* 客户状态分布（真实数据，仍展示） */}
+      {/* 客户状态分布（真实数据） */}
       <Card style={{ marginTop: 16 }} title="客户状态分布">
         {isEmptyData ? (
           <Empty description="暂无客户数据" />
