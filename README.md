@@ -166,7 +166,7 @@ npm run seed -w server
 │   │   └── {auth,customers,users,orders,products,reports,upload,dashboard}/  # 业务模块
 │   ├── uploads/     # 图片上传落盘目录（按月归档，不入 git）
 │   └── .env.example   # 环境变量示例
-└── docs/              # spec / issues / user-guide / sql + 截图
+└── docs/              # 文档：README 索引 / spec / issues / user-guide / sql + 截图
 ```
 
 ## 常用脚本
@@ -182,23 +182,26 @@ npm run seed -w server
 
 ## 文档
 
+完整索引见 **[docs/README.md](./docs/README.md)**（文档目录首页）。
+
 - **[docs/user-guide.md](./docs/user-guide.md)** —— 使用手册：按界面逐项介绍，含截图与角色权限矩阵
 - [docs/spec.md](./docs/spec.md) —— 功能规格：架构约定、双数据源方案、统一响应与错误码、RBAC 权限矩阵、API 契约、验收标准
-- [docs/issues.md](./docs/issues.md) —— Issue 与 Milestone 规划
+- [docs/issues.md](./docs/issues.md) —— Issue 与 Milestone 规划 + 下一步（M5）优先级
 - [docs/sql/postgres-schema.sql](./docs/sql/postgres-schema.sql) —— PostgreSQL 初始化脚本（由 `npm run db:sql -w server` 生成）
 
 ## 当前进度与下一步
 
-**已完成**（M1 P0 + M2 P1 + M3 P2 共 8 个 issue；M4 进行中）：数据层基座、认证与 RBAC、客户/用户业务接口、前端登录与路由守卫、后台骨架布局、客户/用户管理页、Dashboard 看板、通用能力收口；M4 已落地数据层扩展（orders/products）、订单页、商品页 + 图片上传基座、报表中心与 Dashboard 去随机化，以及演示数据与文档。
+**已完成**（M1 P0 + M2 P1 + M3 P2 全部；M4 进行中）：数据层基座、认证与 RBAC、客户/用户业务接口、前端登录与路由守卫、后台骨架布局、客户/用户管理页、Dashboard 看板、通用能力收口；M4 已落地数据层扩展（orders/products）、订单页、商品页 + 图片上传基座、报表中心与 Dashboard 去随机化，以及文档同步。
 
-**待实现**：
+**下一步（按优先级，详见 [docs/issues.md](./docs/issues.md#下一步规划m5-展望)）**：
 
-1. PostgreSQL 集成实测（本地已装 PG，file / pg 双模式对拍收口）
-2. 剩余 3 个占位菜单的业务实现（消息 / 操作日志 / 系统设置）
-3. 第二部分完善功能（微信登录/支付、Excel 导出、暗黑模式；文件上传已随 #34 落地本地基座）
-4. Docker 部署
+1. **P0** · #32 PostgreSQL 实测与收口 + Docker 部署（合并做，收尾 M4）
+2. **P1** · 报表导出（Excel / CSV）
+3. **P1** · 操作日志 / 审计（`/logs` 转正）
+4. **P2** · 系统设置 / 数据字典、消息通知
+5. **持续** · 测试框架、暗黑模式、上传 OSS 化；微信登录/支付暂缓
 
-具体进度以 [issue 列表](https://github.com/jackniu81/j-admin/issues) 为准。本期**不做**：测试框架搭建。
+本期**不做**：测试框架搭建（以 build + 冒烟替代）。
 
 ## License
 
