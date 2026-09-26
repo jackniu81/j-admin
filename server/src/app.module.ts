@@ -6,6 +6,7 @@ import { AuthModule } from './auth/auth.module';
 import { CustomersModule } from './customers/customers.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { DataModule } from './data/data.module';
+import { OrdersModule } from './orders/orders.module';
 import { UsersModule } from './users/users.module';
 import { VersionModule } from './version/version.module';
 
@@ -15,6 +16,7 @@ import { VersionModule } from './version/version.module';
     DataModule,
     AuthModule,
     CustomersModule,
+    OrdersModule,
     UsersModule,
     DashboardModule,
     VersionModule,
