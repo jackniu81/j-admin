@@ -32,6 +32,7 @@
 | 34 | 商品管理页 + 图片上传基座（本地磁盘，ProFormUploadButton） | M4 | backend, frontend, P1 | §6 §7.7 |
 | 35 | 报表中心页 + Dashboard 去随机化（多维图表 + 时间筛选） | M4 | backend, frontend, P1 | §6 §7.5 §7.8 |
 | 36 | docs: M4 文档与规划同步（issues/spec/README/schema.sql） | M4 | documentation, P2 | 全部 |
+| 43 | [工程] 测试框架搭建：jest 单元测试 + e2e 冒烟 | M5 | backend, frontend, P1 | §3 §5 §6 |
 
 ## 依赖关系
 
@@ -69,7 +70,7 @@ M4（依赖 M1~M3 全部落地）：
 | P1 | **操作日志 / 审计**（`/logs` 占位转正） | 3 | 新增 `logs` 集合，对订单/商品/用户的写操作留痕；与现有 RBAC、写接口天然联动，是「后台完整度」的关键一环 |
 | P2 | **系统设置 / 数据字典**（`/settings` 转正） | 4 | 把商品分类等枚举配置化，为后续扩展铺路；建议在日志之后做 |
 | P2 | **消息通知**（`/messages` 转正） | 5 | 站内消息需要业务事件（如订单状态流转）作为来源，依赖前面能力，放后面才有内容可发 |
-| 持续 | **工程健康度**：测试框架（jest + 关键 service spec / e2e）、暗黑模式、图片上传 OSS 化、README 部署章节完善 | 并行择机 | 不阻塞主线，按空闲插做；测试框架当前以「可手工验收 + build + 冒烟」替代 |
+| 持续 | **工程健康度**：测试框架（jest + 关键 service spec / e2e）、暗黑模式、图片上传 OSS 化、README 部署章节完善 | 并行择机 | 不阻塞主线，按空闲插做；**测试框架已随 #43 落地**（后端 jest unit+e2e，前端 Vitest 组件测试），暗黑/OSS 仍待做 |
 | 暂缓 | **微信登录 / 支付 / 小程序** | — | 体量大、依赖外部资质，单独立项按需排期 |
 
 **一句话路线**：`#32 + Docker` 收尾 M4 → `报表导出` 低成本增效 → `操作日志 → 系统设置 → 消息通知` 按数据依赖补业务闭环 → 测试/暗黑/OSS 并行择机 → 微信能力最后单列。
@@ -78,6 +79,6 @@ M4（依赖 M1~M3 全部落地）：
 
 - 消息通知 / 操作日志 / 系统设置与微信登录/支付、Excel 导出、暗黑模式**M4 不建 issue**，已纳入上方[下一步规划](#下一步规划m5-展望)；图片上传已在 M4 随 #34 落地（本地磁盘基座，OSS 预留替换）
 - README「基础表单」(P1) 未单独立 issue：表单 UI 与校验在 #6 的弹窗中实现，**前后端双端校验一致性**的验收放在 #7
-- 测试框架搭建不在本期范围，后续单独立项
+- 测试框架已单独立项 **#43** 并落地：后端 `npm test -w server`（jest 双 project），unit 覆盖 auth/orders/file.store/unique-rule，e2e 以 file 模式跑登录/RBAC/CRUD 冒烟；前端 `npm test -w client`（Vitest + Testing Library，jsdom + threads 池）覆盖 token/AuthContext/RequireAuth/TopProgressBar/feedback；根目录 `npm test` 一键并发两端。PG 集成测试依赖 #32 收口后再补
 - 每个 issue 的正文都引用了 spec 章节与对应验收标准，实现时以 spec 为准
 - issue 正文源文件保存在 `node_modules/.cache/gh-issues/`（已 gitignore，M1~M3 为 01-08.md，M4 为 31-36.md），需要改 issue 时可用 `gh issue edit <n> --body-file`
