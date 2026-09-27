@@ -1,3 +1,4 @@
+/// <reference types="vitest/config" />
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import pkg from './package.json' with { type: 'json' };
@@ -27,5 +28,15 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist',
+  },
+  // Vitest（issue #43 前端测试）：jsdom 环境 + RTL 自动清理（globals）
+  test: {
+    environment: 'jsdom',
+    globals: true,
+    setupFiles: './src/setupTests.ts',
+    css: false,
+    // 本机默认 forks 池启动 worker 会超时，改用 threads；isolate:false 复用模块、显著提速
+    pool: 'threads',
+    isolate: false,
   },
 });
